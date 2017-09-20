@@ -4,7 +4,10 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.SystemClock;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -17,21 +20,28 @@ import cn.leo.fivechess.bean.Chess;
 public class ChessBoard extends View {
     private Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     /**
-     * 棋盘大小，15*15，五子棋 19*19 围棋
+     * 棋盘大小，15*15 五子棋 / 19*19 围棋
      */
-    private int mLines = 15;
-    private Chess[][] mChess;
-    private onChessDownListener mChessDownLister;
-    private float mDistance;
-    private float mOldDist;
-    private int mMode;
-    private float mZoom = 1.0f;
-    private int mLength;
-    private float downX;
-    private float downY;
-    private boolean mLocked;
-    private boolean mScroll;
-    private int mIndex;
+    private final static int mLines = 15; //格子数
+    private Chess[][] mChess = new Chess[15][15];//棋子
+    private onChessDownListener mChessDownLister;//落子监听
+    private float mDistance;//格子间距
+    private float mOldDist;//双指之间上次距离
+    private int mMode;//手指数
+    private float mZoom = 1.0f;//缩放倍数
+    private int mLength;//棋盘宽
+    private float downX;//手指落点X
+    private float downY;//手指落点Y
+    private boolean mLocked;//是否锁定滑动。缩放时不滑动
+    private boolean mScroll;//是否在滑动
+    private float mTextSize;
+    private long mScrollTime;
+    private boolean mAfterZoom;
+    private int mIndex;//落子序号
+    private int lastX;//最后落子坐标X
+    private int lastY;//最后落子坐标Y
+    private int lastColor;//最后落子颜色
+    private boolean turn;//是否切花下子方
 
     public ChessBoard(Context context) {
         this(context, null);
@@ -43,8 +53,10 @@ public class ChessBoard extends View {
 
     public ChessBoard(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mPaint.setTextSize(32);
+        mTextSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12, getResources().getDisplayMetrics());
+        mPaint.setTextSize(mTextSize);
         mPaint.setTextAlign(Paint.Align.CENTER);
+        mPaint.setStrokeWidth(2.0f);
     }
 
     @Override
@@ -53,9 +65,7 @@ public class ChessBoard extends View {
         int heightPixels = getResources().getDisplayMetrics().heightPixels;
         mLength = Math.min(widthPixels, heightPixels);
         widthMeasureSpec = MeasureSpec.makeMeasureSpec(mLength, MeasureSpec.EXACTLY);
-        heightMeasureSpec = widthMeasureSpec;
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
+        super.onMeasure(widthMeasureSpec, widthMeasureSpec);
     }
 
     @Override
@@ -95,7 +105,7 @@ public class ChessBoard extends View {
                             (mChess[i][j].y + 1) * mDistance, mDistance / 2.5f, mPaint);
                     mPaint.setColor(Color.WHITE); // 画编号
                     canvas.drawText(mChess[i][j].index + "", (mChess[i][j].x + 1) * mDistance
-                            , (mChess[i][j].y + 1) * mDistance + 12, mPaint);
+                            , (mChess[i][j].y + 1) * mDistance + (mTextSize / 3), mPaint);
                 } else if (mChess[i][j].color == 2) {
                     mPaint.setStyle(Paint.Style.FILL);
                     mPaint.setColor(Color.WHITE); // 画白子
@@ -103,7 +113,7 @@ public class ChessBoard extends View {
                             mDistance / 2.5f, mPaint);
                     mPaint.setColor(Color.BLACK); // 画编号
                     canvas.drawText(mChess[i][j].index + "", (mChess[i][j].x + 1) * mDistance
-                            , (mChess[i][j].y + 1) * mDistance + 12, mPaint);
+                            , (mChess[i][j].y + 1) * mDistance + (mTextSize / 3), mPaint);
                 }
                 if (mChess[i][j].color != 0 && mChess[i][j].index == mIndex) { // 画出最后落子位置
                     mPaint.setColor(Color.RED);
@@ -115,20 +125,13 @@ public class ChessBoard extends View {
         }
     }
 
-
-    public void setChess(Chess[][] chess, int index) {
-        mIndex = index;
-        mChess = chess;
-        invalidate();//重绘
-
-    }
-
-    public void setOnChessDownListener(onChessDownListener listener) {
-        mChessDownLister = listener;
-    }
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (mAfterZoom) {
+            mOldDist = spacing(event);
+            mAfterZoom = false;
+            return true;
+        }
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
                 downX = event.getX();
@@ -137,7 +140,8 @@ public class ChessBoard extends View {
                 mMode = 1;
                 break;
             case MotionEvent.ACTION_POINTER_DOWN:
-                mOldDist = spacing(event);
+                if (mMode >= 2)
+                    mOldDist = spacing(event);
                 mMode += 1;
                 mLocked = true;
                 //多指按下
@@ -152,24 +156,24 @@ public class ChessBoard extends View {
                     //双指缩放
                     float newDist = spacing(event);
                     if (newDist > mOldDist + 10) {
-                        zoomOut(newDist - mOldDist);
+                        zoomOut();
+                        mAfterZoom = true;
+                    } else if (newDist < mOldDist - 10) {
+                        zoomIn();
+                        mAfterZoom = true;
                     }
-                    if (newDist < mOldDist - 10) {
-                        zoomIn(mOldDist - newDist);
-                    }
-                    mOldDist = newDist;
                 }
                 if (mMode == 1 && !mLocked) {
                     //拖动界面
-
                     if (Math.abs(downX - event.getX()) > 10 &&
                             Math.abs(downY - event.getY()) > 10) {
                         mScroll = true;
-                        if (mZoom > 1.0f) {
-                            int left = (int) (event.getX() - downX) + getLeft();
-                            int top = (int) (event.getY() - downY) + getTop();
-                            setLeft(left);
-                            setTop(top);
+                        if (SystemClock.uptimeMillis() - mScrollTime > 16) {
+                            int left = (int) (event.getX() - downX + getX());
+                            int top = (int) (event.getY() - downY + getY());
+                            setX(left);
+                            setY(top);
+                            mScrollTime = SystemClock.uptimeMillis();
                         }
                     }
                 }
@@ -185,7 +189,7 @@ public class ChessBoard extends View {
                     //落子
                     int x = (int) ((event.getX() + 0.5 * mDistance) / mDistance) - 1;
                     int y = (int) ((event.getY() + 0.5 * mDistance) / mDistance) - 1;
-                    if (mChessDownLister != null) {
+                    if (mChessDownLister != null && !turn) {
                         mChessDownLister.onChessDown(x, y);
                     }
                 }
@@ -195,18 +199,17 @@ public class ChessBoard extends View {
         return true;
     }
 
-    private void zoomIn(float dist) {
+    private void zoomIn() {
         //缩小
         mZoom -= 0.05f;
         if (mZoom < 1.0f) {
             mZoom = 1.0f;
-            requestLayout();
         }
         setScaleX(mZoom);
         setScaleY(mZoom);
     }
 
-    private void zoomOut(float dist) {
+    private void zoomOut() {
         //放大
         mZoom += 0.05f;
         if (mZoom > 2.0f) {
@@ -216,7 +219,9 @@ public class ChessBoard extends View {
         setScaleY(mZoom);
     }
 
+    /*计算两指距离*/
     private float spacing(MotionEvent event) {
+        if (event.getPointerCount() < 2) return 0;
         float x = event.getX(0) - event.getX(1);
         float y = event.getY(0) - event.getY(1);
         return (float) Math.sqrt(x * x + y * y);
@@ -224,5 +229,83 @@ public class ChessBoard extends View {
 
     public interface onChessDownListener {
         void onChessDown(int x, int y);
+
+        void onGameOver(int winColor);
+    }
+
+    /*开始游戏*/
+    public void startGame() {
+        for (int i = 0; i < 15; i++) {
+            for (int j = 0; j < 15; j++) {
+                if (mChess[i][j] == null) {
+                    mChess[i][j] = new Chess(); // 加载棋子对象
+                } else {
+                    mChess[i][j].color = 0;
+                }
+            }
+        }
+        mIndex = 1;
+        lastColor = 0;
+        invalidate();//重绘
+    }
+
+    /*设置监听*/
+    public void setOnChessDownListener(onChessDownListener listener) {
+        mChessDownLister = listener;
+    }
+
+    public Chess[][] getChess() {
+        return mChess;
+    }
+
+    /*落子*/
+    public void setChess(int x, int y, int color) {
+        Log.e("落子", "x=" + x + " y=" + y + " color=" + color);
+        mIndex++;
+        lastX = x;
+        lastY = y;
+        lastColor = color;
+        mChess[x][y].index = mIndex;
+        mChess[x][y].color = color;
+        mChess[x][y].x = x;
+        mChess[x][y].y = y;
+        turn = !turn;
+        invalidate();
+        if (mChessDownLister != null && isFive()) {
+            mChessDownLister.onGameOver(lastColor);
+        }
+    }
+
+    private boolean isFive() {
+        // 判断是否五子及以上连线
+        return (sameLine(1, 0) > 4 || sameLine(0, 1) > 4 || sameLine(1, 1) > 4
+                || sameLine(-1, 1) > 4 || mIndex == 225);
+    }
+
+
+    private int sameLine(int x, int y) { // 判断一条线有多少个同色子
+        int num; // 同一直线同色棋子数
+        int i = lastX;
+        int j = lastY;
+        do { //检测直线一边同色棋子数
+            if (mChess[i][j].color != mChess[lastX][lastY].color) {
+                break;
+            }
+            i += x;
+            j += y;
+        } while (!(i < 0 || i > 14 || j < 0 || j > 14)); // 边界检测
+        num = Math.max(Math.abs(lastX - i), Math.abs(lastY - j));
+
+        i = lastX;
+        j = lastY;
+        do { //检测直线另一边同色棋子数
+            if (mChess[i][j].color != mChess[lastX][lastY].color) {
+                break;
+            }
+            i -= x;
+            j -= y;
+        } while (!(i < 0 || i > 14 || j < 0 || j > 14)); // 边界检测
+        num = --num + Math.max(Math.abs(lastX - i), Math.abs(lastY - j));
+        return num;
     }
 }
