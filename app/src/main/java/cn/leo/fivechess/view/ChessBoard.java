@@ -98,6 +98,7 @@ public class ChessBoard extends View {
         //绘制棋子
         for (int i = 0; i < mChess.length; i++) {
             for (int j = 0; j < mChess[i].length; j++) {
+                if (mChess[i][j].color == 0) continue;
                 if (mChess[i][j].color == 1) {
                     mPaint.setStyle(Paint.Style.FILL);
                     mPaint.setColor(Color.BLACK); // 画黑子
@@ -115,7 +116,7 @@ public class ChessBoard extends View {
                     canvas.drawText(mChess[i][j].index + "", (mChess[i][j].x + 1) * mDistance
                             , (mChess[i][j].y + 1) * mDistance + (mTextSize / 3), mPaint);
                 }
-                if (mChess[i][j].color != 0 && mChess[i][j].index == mIndex) { // 画出最后落子位置
+                if (mChess[i][j].index == mIndex) { // 画出最后落子位置
                     mPaint.setColor(Color.RED);
                     mPaint.setStyle(Paint.Style.STROKE);
                     canvas.drawCircle((mChess[i][j].x + 1) * mDistance, (mChess[i][j].y + 1) * mDistance,

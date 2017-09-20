@@ -74,7 +74,7 @@ public class FiveChessAI /* extends Thread */{
 		}
 		weight = weight << num; // 计算权重
 		if (num >= 5) {
-			weight = weight + 10000; //5子连线权重+10000
+			weight = weight + 20000; //5子连线权重最大
 		}else if (num == 4){
 			weight = weight + 8000;
 		}else if (num == 3){
