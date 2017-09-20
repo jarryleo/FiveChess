@@ -12,6 +12,7 @@ import cn.leo.fivechess.view.ChessBoard;
 public class MainActivity extends AppCompatActivity implements ChessBoard.onChessDownListener {
     private ChessBoard mBoard;
     private FiveChessAI mAI = new FiveChessAI();
+    private boolean isGameOver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,8 +34,13 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
 
     @Override
     public void onChessDown(int x, int y) {
-        mBoard.setChess(x, y, 1);
-        AIgo();
+        if (isGameOver) {
+            isGameOver = false;
+            initData();
+        } else {
+            mBoard.setChess(x, y, 1);
+            AIgo();
+        }
     }
 
     private void AIgo() {
@@ -50,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                initData();
+                isGameOver = true;
             }
         });
         builder.setCancelable(false);
