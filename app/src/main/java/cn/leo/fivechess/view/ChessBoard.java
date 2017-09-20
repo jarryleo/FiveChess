@@ -244,7 +244,7 @@ public class ChessBoard extends View {
                 }
             }
         }
-        mIndex = 1;
+        mIndex = 0;
         lastColor = 0;
         invalidate();//重绘
     }
