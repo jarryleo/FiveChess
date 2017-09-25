@@ -77,12 +77,12 @@ public class ChessBoard extends View {
         for (int i = 0; i < mLines; i++) {
             canvas.drawLine(mDistance,
                     (i + 1) * mDistance,
-                    mLength - mDistance - mLines / 2,
+                    mLength - mDistance,
                     (i + 1) * mDistance, mPaint); // 画棋盘格子
             canvas.drawLine((i + 1) * mDistance,
                     mDistance,
                     (i + 1) * mDistance,
-                    mLength - mDistance - mLines / 2, mPaint);
+                    mLength - mDistance, mPaint);
             if (i == 3 || i == 7 || i == 11) { // 画星位。这是五子棋的星位
                 canvas.drawCircle((i + 1) * mDistance, (i + 1) * mDistance, 5, mPaint);
                 canvas.drawCircle((i + 1) * mDistance, (mLines - i) * mDistance, 5, mPaint);
