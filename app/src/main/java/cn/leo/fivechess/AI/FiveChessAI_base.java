@@ -76,6 +76,7 @@ public class FiveChessAI_base implements AI_Interface {
         line[3] = singleLine(x, y, color, -1, 1);
 
         /*TODO 根据四线权重计算总权重，形成33等权重另计但不能比自身5连权重高。棋力关键点2，着重处理*/
+        weight = line[1] + line[2] + line[3] + line[4];
 
         return weight;
     }
