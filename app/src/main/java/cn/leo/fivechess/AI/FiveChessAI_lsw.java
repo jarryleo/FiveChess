@@ -1,22 +1,21 @@
 package cn.leo.fivechess.AI;
 
+import android.util.Log;
 import android.util.SparseIntArray;
 
-import cn.leo.fivechess.Constant;
 import cn.leo.fivechess.bean.Chess;
 
+/**
+ * 五子棋AI
+ *
+ * @author 刘晟玮
+ */
 public class FiveChessAI_lsw implements AI_Interface {
-    /**
-     * 五子棋AI
-     *
-     * @author 刘晟玮
-     */
     Chess chess[][];// = new Chess[15][15]; // 接受棋盘的所有棋子
     private int ownWeight[][] = new int[15][15]; // 己方每个点权重
     private int oppositeWeight[][] = new int[15][15]; // 对方每个点权重
     private int computerColor; // 电脑要走的棋子颜色 黑1 或 白2 ,0为空
 
-    @Override
     public Chess AIGo(Chess chess[][], int color) { // 返回计算机落子
         this.chess = chess;
         this.computerColor = color;
@@ -29,11 +28,12 @@ public class FiveChessAI_lsw implements AI_Interface {
         for (int i = 0; i < chess.length; i++) {
             for (int j = 0; j < chess[i].length; j++) {
                 if (max <= ownWeight[i][j]) {
-                    if (Math.random() * 100 < 33 && max == ownWeight[i][j]) { //加点随机事件
-                        max = ownWeight[i][j]; // 获取最大权重
-                        x = i; // 获取坐标
-                        y = j;
+                    if (Math.random() * 100 > 66 && max == ownWeight[i][j]) { //加点随机事件
+                        continue;
                     }
+                    max = ownWeight[i][j]; // 获取最大权重
+                    x = i; // 获取坐标
+                    y = j;
                 }
                 if (max <= oppositeWeight[i][j]) {
                     if (Math.random() * 100 > 66 && max == oppositeWeight[i][j]) { //加点随机事件
@@ -63,8 +63,18 @@ public class FiveChessAI_lsw implements AI_Interface {
                 oppositeWeight[i][j] = weightSum(i, j, 3 - computerColor);
             }
         }
+        for (int i = 0; i < ownWeight.length; i++) {
+            String s = "";
+            for (int i1 : ownWeight[i]) {
+                if (i1 == 0) {
+                    s += "00 ";
+                } else {
+                    s += i1 + " ";
+                }
+            }
+            Log.e("eee", s);
+        }
     }
-
 
     private int weightSum(int x, int y, int color) { // 一个坐标的四线总权重
         int weight = 0; // 总权重
@@ -76,7 +86,7 @@ public class FiveChessAI_lsw implements AI_Interface {
         line[1] = singleLine(x, y, color, 0, 1);
         line[2] = singleLine(x, y, color, 1, 1);
         line[3] = singleLine(x, y, color, -1, 1);
-        /*TODO 根据四线权重计算总权重，形成33等权重另计但不能比自身5连权重高。*/
+        /*TODO 根据四线权重计算总权重，形成33，权重另计但不能比自身5连权重高。*/
         //创建Map, 用于统计每种权重的个数
         SparseIntArray map = new SparseIntArray();
         for (int i = 0; i <= Constant.CHECKMATE; i++) {
@@ -90,7 +100,7 @@ public class FiveChessAI_lsw implements AI_Interface {
         for (int i = Constant.CHECKMATE; i > 0; i--) {
             if (map.get(i) >= 1) {
                 //找到最大权重
-                weight = i * 10;
+                weight = i * 20;
                 if (i >= Constant.RIVAL_R_0_D_1) {
                     //当最大权重大于Constant.RIVAL_R_0_D_1时, 直接返回
                     return weight;
@@ -98,15 +108,19 @@ public class FiveChessAI_lsw implements AI_Interface {
                 break;
             }
         }
-        if (map.get(Constant.R_1_D_1) > 1 ||
-                (map.get(Constant.R_1_D_1) == 1 && map.get(Constant.R_1_D_2_L3) > 0) ||
-                (map.get(Constant.R_1_D_1) == 1 && map.get(Constant.R_1_D_2_J3) > 0)) {
+        if (map.get(Constant.R_1_D_1_R4) > 1 ||
+                map.get(Constant.R_1_D_1_J4) > 1 ||
+                (map.get(Constant.R_1_D_1_R4) == 1 && map.get(Constant.R_1_D_1_J4) == 1) ||
+                (map.get(Constant.R_1_D_1_R4) == 1 && map.get(Constant.R_1_D_2_L3) > 0) ||
+                (map.get(Constant.R_1_D_1_R4) == 1 && map.get(Constant.R_1_D_2_J3) > 0) ||
+                (map.get(Constant.R_1_D_1_J4) == 1 && map.get(Constant.R_1_D_2_L3) > 0) ||
+                (map.get(Constant.R_1_D_1_J4) == 1 && map.get(Constant.R_1_D_2_J3) > 0)) {
             //让0缓1 = 让1缓1 + 让1缓1 = 让1缓1 + 让1缓2
             weight = Constant.R_0_D_1;
         } else if (map.get(Constant.RIVAL_R_1_D_1) > 1 ||
                 (map.get(Constant.RIVAL_R_1_D_1) == 1 && map.get(Constant.RIVAL_R_1_D_2_L3) > 0) ||
                 (map.get(Constant.RIVAL_R_1_D_1) == 1 && map.get(Constant.RIVAL_R_1_D_2_J3) > 0)) {
-            //让0缓1 = 让1缓1 + 让1缓1 = 让1缓1 + 让1缓2
+            //对方让0缓1 = 让1缓1 + 让1缓1 = 让1缓1 + 让1缓2
             weight = Constant.RIVAL_R_0_D_1;
         } else if ((map.get(Constant.R_1_D_2_L3) > 1) ||
                 (map.get(Constant.R_1_D_2_J3) > 1) ||
@@ -115,34 +129,61 @@ public class FiveChessAI_lsw implements AI_Interface {
             weight = Constant.R_0_D_2;
         } else if ((map.get(Constant.RIVAL_R_1_D_2_L3) > 1) ||
                 (map.get(Constant.RIVAL_R_1_D_2_J3) > 1) ||
-                (map.get(Constant.RIVAL_R_1_D_2_L3) >= 1 &&
-                        (map.get(Constant.RIVAL_R_1_D_2_J3) >= 1))) {
-            //让0缓2 = 让1缓2 + 让1缓2
+                (map.get(Constant.RIVAL_R_1_D_2_L3) >= 1 && (map.get(Constant.RIVAL_R_1_D_2_J3) >= 1))) {
+            //对方让0缓2 = 让1缓2 + 让1缓2
             weight = Constant.RIVAL_R_0_D_2;
-        } else if (weight == Constant.R_1_D_1 &&
+        } else if (weight == Constant.R_1_D_1_R4 &&
                 (map.get(Constant.RIVAL_R_1_D_1) == 1 ||
                         map.get(Constant.RIVAL_R_1_D_2_L3) == 1 ||
                         map.get(Constant.RIVAL_R_1_D_2_J3) == 1)) {
-            //己方让1缓1, 对方让1的权重, 与让0缓2平级
-            weight += 10;
+            //己方冲四(让1缓1), 对方让1的权重, 与让0缓2平级
+            weight += 20;
+        } else if (weight == Constant.R_1_D_1_J4 &&
+                (map.get(Constant.RIVAL_R_1_D_1) == 1 ||
+                        map.get(Constant.RIVAL_R_1_D_2_L3) == 1 ||
+                        map.get(Constant.RIVAL_R_1_D_2_J3) == 1)) {
+            //己方跳四(让1缓1), 对方让1的权重, 与让0缓2平级
+            weight += 40;
+        } else if (weight == Constant.R_1_D_1_R4 || weight == Constant.R_1_D_1_J4) {
+
         } else if (weight == Constant.R_1_D_2_L3 &&
                 (map.get(Constant.RIVAL_R_1_D_1) == 1 ||
                         map.get(Constant.RIVAL_R_1_D_2_L3) == 1 ||
                         map.get(Constant.RIVAL_R_1_D_2_J3) == 1)) {
-            //己方活三(让1缓2), 对方让1的权重, 优于让1缓1
-            weight += 15;
+            //己方活三(让1缓2), 对方让1的权重, 次于让0缓2, 优于让1缓1
+            weight += 50;
         } else if (weight == Constant.R_1_D_2_J3 &&
                 (map.get(Constant.RIVAL_R_1_D_1) == 1 ||
                         map.get(Constant.RIVAL_R_1_D_2_L3) == 1 ||
                         map.get(Constant.RIVAL_R_1_D_2_J3) == 1)) {
-            //己方跳三(让1缓2), 对方让1的权重, 优于让1缓1
-            weight += 25;
-        } else if (color == computerColor && weight >= Constant.R_1_D_2_J3) {
+            //己方跳三(让1缓2), 对方让1的权重, 次于让0缓2, 优于让1缓1
+            weight += 69;
+        } else if (weight == Constant.R_2_D_3_L2 &&
+                (map.get(Constant.RIVAL_R_1_D_1) == 1 ||
+                        map.get(Constant.RIVAL_R_1_D_2_L3) == 1 ||
+                        map.get(Constant.RIVAL_R_1_D_2_J3) == 1)) {
+            //己方活二, 对方让1的权重, 次于让1缓2, 优于让2缓3
+            weight += 10;
+        } else if (weight == Constant.R_2_D_3_J2 &&
+                (map.get(Constant.RIVAL_R_1_D_1) == 1 ||
+                        map.get(Constant.RIVAL_R_1_D_2_L3) == 1 ||
+                        map.get(Constant.RIVAL_R_1_D_2_J3) == 1)) {
+            //己方跳二, 对方让1的权重, 次于让1缓2, 优于让2缓3
+            weight += 29;
+        } else if (color == computerColor) {
             //己方权重大于跳三(让1缓2)的权重时, 每存在一个己方让2, 则权重+1
-            weight += map.get(Constant.R_2_D_2) + map.get(Constant.R_2_D_3);
-        } else if (color != computerColor && weight >= Constant.RIVAL_R_1_D_2_J3) {
-            //对方权重大于对方跳三(让1缓2)的权重时, 每存在一个对方让2, 则权重+1
-            weight += map.get(Constant.RIVAL_R_2_D_2) + map.get(Constant.RIVAL_R_2_D_3);
+            weight += map.get(Constant.R_2_D_2) +
+                    map.get(Constant.R_2_D_3_L2) +
+                    map.get(Constant.R_2_D_3_J2);
+        } else if (color != computerColor) {
+            //对方权重大于对方跳三(让1缓2)的权重时
+            //每存在一个己方活二, 则权重+4, 每存在一个己方跳二, 则权重+3, 每存在一个对方活2, 则权重+2, 每存在一个对方跳2, 则权重+1
+            weight += map.get(Constant.R_2_D_2) +
+                    map.get(Constant.R_2_D_3_L2) +
+                    map.get(Constant.R_2_D_3_J2) +
+                    map.get(Constant.RIVAL_R_2_D_2) +
+                    map.get(Constant.RIVAL_R_2_D_3_L2) +
+                    map.get(Constant.RIVAL_R_2_D_3_J2);
         }
 
         if (x == 7 && y == 7) { // 中间点权重+1
@@ -163,8 +204,8 @@ public class FiveChessAI_lsw implements AI_Interface {
         int leftSame = oneSide(x, y, color, px, py, 1); //左边相邻连续同色
         int rightSame = oneSide(x, y, color, -px, -py, 1); //右边相邻连续同色
 
-        int leftNSame = oneSide(x, y, color, px, py, 2); //左边不相邻（1个空位）同色数
-        int rightNSame = oneSide(x, y, color, -px, -py, 2); //右边不相邻（1个空位）同色数
+        int leftNSame = oneSide(x, y, color, px, py, 2); //左边不相邻（1个空位）连续同色
+        int rightNSame = oneSide(x, y, color, -px, -py, 2); //右边不相邻（1个空位）连续同色
 
         /*TODO 根据上方8个条件计算一条线的权重*/
         if (color == computerColor) { //己方
@@ -173,17 +214,20 @@ public class FiveChessAI_lsw implements AI_Interface {
             if (isLife4(leftLive, rightLive, leftSame, rightSame))
                 return Constant.R_0_D_1;
             if (isRush4(leftLive, rightLive, leftSame, rightSame))
-                return Constant.R_1_D_1;
+                return Constant.R_1_D_1_R4;
             if (isJump4(leftSpace, rightSpace, leftSame, rightSame, leftNSame, rightNSame))
-                return Constant.R_1_D_1;
+                return Constant.R_1_D_1_J4;
             if (isLife3(leftLive, rightLive, leftSpace, rightSpace, leftSame, rightSame))
                 return Constant.R_1_D_2_L3;
-            if (isJump3(leftSpace, rightSpace, leftSame, rightSame, leftNSame, rightNSame))
+            if (isJump3(leftLive, rightLive, leftSpace, rightSpace, leftSame, rightSame, leftNSame, rightNSame))
                 return Constant.R_1_D_2_J3;
             if (isSleep3(leftLive, rightLive, leftSpace, rightSpace, leftSame, rightSame))
                 return Constant.R_2_D_2;
             if (isLife2(rightLive, leftSpace, rightSpace, leftSame, rightSame))
-                return Constant.R_2_D_3;
+                return Constant.R_2_D_3_L2;
+            if (isJump2(leftLive, rightLive, leftSpace, rightSpace, leftNSame, rightNSame)) {
+                return Constant.R_2_D_3_J2;
+            }
         } else {//对方
             if (isCheckmate(leftSame, rightSame))
                 return Constant.RIVAL_CHECKMATE;
@@ -195,12 +239,15 @@ public class FiveChessAI_lsw implements AI_Interface {
                 return Constant.RIVAL_R_1_D_1;
             if (isLife3(leftLive, rightLive, leftSpace, rightSpace, leftSame, rightSame))
                 return Constant.RIVAL_R_1_D_2_L3;
-            if (isJump3(leftSpace, rightSpace, leftSame, rightSame, leftNSame, rightNSame))
+            if (isJump3(leftLive, rightLive, leftSpace, rightSpace, leftSame, rightSame, leftNSame, rightNSame))
                 return Constant.RIVAL_R_1_D_2_J3;
             if (isSleep3(leftLive, rightLive, leftSpace, rightSpace, leftSame, rightSame))
                 return Constant.RIVAL_R_2_D_2;
             if (isLife2(rightLive, leftSpace, rightSpace, leftSame, rightSame))
-                return Constant.RIVAL_R_2_D_3;
+                return Constant.RIVAL_R_2_D_3_L2;
+            if (isJump2(leftLive, rightLive, leftSpace, rightSpace, leftNSame, rightNSame)) {
+                return Constant.RIVAL_R_2_D_3_J2;
+            }
         }
         return 0;
     }
@@ -254,14 +301,14 @@ public class FiveChessAI_lsw implements AI_Interface {
                 (leftSpace > 0 && rightSame == 2 && rightLive > 2);
     }
 
-    private boolean isJump3(int leftSpace, int rightSpace, int leftSame,
-                            int rightSame, int leftNSame, int rightNSame) {
-        return (leftSpace == 1 && leftNSame == 2) ||
-                (leftSame == 1 && leftNSame == 2) ||
-                (leftSpace == 1 && leftNSame == 1 && rightSame == 1) ||
-                (rightSpace == 1 && rightNSame == 2) ||
-                (rightSame == 1 && rightNSame == 2) ||
-                (rightSpace == 1 && rightNSame == 1 && leftSame == 1);
+    private boolean isJump3(int leftLive, int rightLive, int leftSpace, int rightSpace,
+                            int leftSame, int rightSame, int leftNSame, int rightNSame) {
+        return (leftSpace == 1 && leftNSame == 2 && leftLive > 3 && rightLive > 0) ||
+                (leftSame == 1 && leftNSame == 2 && leftLive > 3 && rightLive > 0) ||
+                (leftSpace == 1 && leftNSame == 1 && rightSame == 1 && leftLive > 2 && rightLive > 1) ||
+                (rightSpace == 1 && rightNSame == 2 && rightLive > 3 && leftLive > 0) ||
+                (rightSame == 1 && rightNSame == 2 && rightLive > 3 && leftLive > 0) ||
+                (rightSpace == 1 && rightNSame == 1 && leftSame == 1 && rightLive > 2 && leftLive > 1);
     }
 
     private boolean isSleep3(int leftLive, int rightLive, int leftSpace,
@@ -280,6 +327,11 @@ public class FiveChessAI_lsw implements AI_Interface {
                 (rightSame == 1 && rightLive > 1 && leftSpace > 0);
     }
 
+    private boolean isJump2(int leftLive, int rightLive, int leftSpace,
+                            int rightSpace, int leftNSame, int rightNSame) {
+        return (leftSpace == 1 && leftNSame == 1 && leftLive > 2 && rightLive > 0) ||
+                (rightSpace == 1 && rightNSame == 1 && rightLive > 2 && leftLive > 0);
+    }
 
     /**
      * 往一个方向查找指定颜色数 （0空，1黑，2白）
