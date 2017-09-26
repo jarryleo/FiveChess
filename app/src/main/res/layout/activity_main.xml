@@ -8,8 +8,27 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
         android:text="单指拖动，双指缩放"
         android:textColor="@android:color/holo_red_dark"
+        android:textSize="16sp"/>
+
+    <TextView
+        android:id="@+id/score_a"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="黑方胜利场次"
+        android:textColor="@android:color/holo_blue_light"
+        android:textSize="16sp"/>
+
+    <TextView
+        android:id="@+id/score_b"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:text="白方胜利场次"
+        android:textColor="@android:color/holo_blue_light"
         android:textSize="16sp"/>
 
     <cn.leo.fivechess.view.ChessBoard

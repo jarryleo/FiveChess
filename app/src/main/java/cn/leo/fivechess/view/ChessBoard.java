@@ -41,7 +41,7 @@ public class ChessBoard extends View {
     private int lastX;//最后落子坐标X
     private int lastY;//最后落子坐标Y
     private int lastColor;//最后落子颜色
-    private boolean turn;//是否切花下子方
+    private boolean lock;//是否锁定人类下子
     private boolean isGameOver;
 
     public ChessBoard(Context context) {
@@ -191,7 +191,7 @@ public class ChessBoard extends View {
                     //落子
                     int x = (int) ((event.getX() + 0.5 * mDistance) / mDistance) - 1;
                     int y = (int) ((event.getY() + 0.5 * mDistance) / mDistance) - 1;
-                    if (mChessDownLister != null && !turn && mChess[x][y].color == 0) {
+                    if (mChessDownLister != null && !lock && mChess[x][y].color == 0) {
                         mChessDownLister.onChessDown(x, y);
                     }
                 }
@@ -273,12 +273,17 @@ public class ChessBoard extends View {
         mChess[x][y].color = color;
         mChess[x][y].x = x;
         mChess[x][y].y = y;
-        turn = !turn;
+        lock = !lock;
         invalidate();
         if (mChessDownLister != null && isFive()) {
             isGameOver = true;
             mChessDownLister.onGameOver(lastColor);
         }
+    }
+
+    /*锁定人类走子*/
+    public void setLock(boolean lock) {
+        this.lock = lock;
     }
 
     private boolean isFive() {

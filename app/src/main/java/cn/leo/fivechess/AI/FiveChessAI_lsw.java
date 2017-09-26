@@ -5,17 +5,18 @@ import android.util.SparseIntArray;
 import cn.leo.fivechess.Constant;
 import cn.leo.fivechess.bean.Chess;
 
-public class FiveChessAI_copy /* extends Thread */ {
+public class FiveChessAI_lsw implements AI_Interface {
     /**
      * 五子棋AI
      *
-     * @author 刘佳睿
+     * @author 刘晟玮
      */
     Chess chess[][];// = new Chess[15][15]; // 接受棋盘的所有棋子
     private int ownWeight[][] = new int[15][15]; // 己方每个点权重
     private int oppositeWeight[][] = new int[15][15]; // 对方每个点权重
     private int computerColor; // 电脑要走的棋子颜色 黑1 或 白2 ,0为空
 
+    @Override
     public Chess AIGo(Chess chess[][], int color) { // 返回计算机落子
         this.chess = chess;
         this.computerColor = color;
@@ -50,6 +51,11 @@ public class FiveChessAI_copy /* extends Thread */ {
         return point;
     }
 
+    @Override
+    public String getAIName() {
+        return "刘晟玮的引擎";
+    }
+
     private void calculateWeight() { // 获取双方所有坐标的权重
         for (int i = 0; i < chess.length; i++) {
             for (int j = 0; j < chess[i].length; j++) {
@@ -70,7 +76,7 @@ public class FiveChessAI_copy /* extends Thread */ {
         line[1] = singleLine(x, y, color, 0, 1);
         line[2] = singleLine(x, y, color, 1, 1);
         line[3] = singleLine(x, y, color, -1, 1);
-        /*TODO 根据四线权重计算总权重，形成33，权重另计但不能比自身5连权重高。*/
+        /*TODO 根据四线权重计算总权重，形成33等权重另计但不能比自身5连权重高。*/
         //创建Map, 用于统计每种权重的个数
         SparseIntArray map = new SparseIntArray();
         for (int i = 0; i <= Constant.CHECKMATE; i++) {
@@ -157,8 +163,8 @@ public class FiveChessAI_copy /* extends Thread */ {
         int leftSame = oneSide(x, y, color, px, py, 1); //左边相邻连续同色
         int rightSame = oneSide(x, y, color, -px, -py, 1); //右边相邻连续同色
 
-        int leftNSame = oneSide(x, y, color, px, py, 2); //左边不相邻（1个空位）连续同色
-        int rightNSame = oneSide(x, y, color, -px, -py, 2); //右边不相邻（1个空位）连续同色
+        int leftNSame = oneSide(x, y, color, px, py, 2); //左边不相邻（1个空位）同色数
+        int rightNSame = oneSide(x, y, color, -px, -py, 2); //右边不相邻（1个空位）同色数
 
         /*TODO 根据上方8个条件计算一条线的权重*/
         if (color == computerColor) { //己方
