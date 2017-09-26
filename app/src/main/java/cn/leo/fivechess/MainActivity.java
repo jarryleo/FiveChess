@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
                 score_b++;
             }
             mTv_score_a.setText("人类：" + score_a);
-            mTv_score_a.setText("AI：" + score_b);
+            mTv_score_b.setText("AI：" + score_b);
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(winColor == humanColor ? "你赢了" : "你输了");
             builder.setMessage(winColor == humanColor ? "恭喜，你赢了!" : "别气馁，加把劲!");
@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
             }
 
             mTv_score_a.setText("黑方：" + score_a);
-            mTv_score_a.setText("白方：" + score_b);
+            mTv_score_b.setText("白方：" + score_b);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(winColor == CHESS_COLOR_BLACK ? "黑子胜" : "白子胜");
