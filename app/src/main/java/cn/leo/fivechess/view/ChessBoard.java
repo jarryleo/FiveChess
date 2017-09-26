@@ -42,6 +42,7 @@ public class ChessBoard extends View {
     private int lastY;//最后落子坐标Y
     private int lastColor;//最后落子颜色
     private boolean turn;//是否切花下子方
+    private boolean isGameOver;
 
     public ChessBoard(Context context) {
         this(context, null);
@@ -245,6 +246,7 @@ public class ChessBoard extends View {
                 }
             }
         }
+        isGameOver = false;
         mIndex = 0;
         lastColor = 0;
         invalidate();//重绘
@@ -261,6 +263,7 @@ public class ChessBoard extends View {
 
     /*落子*/
     public void setChess(int x, int y, int color) {
+        if (isGameOver) return;
         Log.e("落子", "x=" + x + " y=" + y + " color=" + color);
         mIndex++;
         lastX = x;
@@ -273,6 +276,7 @@ public class ChessBoard extends View {
         turn = !turn;
         invalidate();
         if (mChessDownLister != null && isFive()) {
+            isGameOver = true;
             mChessDownLister.onGameOver(lastColor);
         }
     }

@@ -2,6 +2,7 @@ package cn.leo.fivechess.AI;
 
 import android.util.SparseIntArray;
 
+import cn.leo.fivechess.Constant;
 import cn.leo.fivechess.bean.Chess;
 
 public class FiveChessAI_copy /* extends Thread */ {
@@ -58,6 +59,7 @@ public class FiveChessAI_copy /* extends Thread */ {
         }
     }
 
+
     private int weightSum(int x, int y, int color) { // 一个坐标的四线总权重
         int weight = 0; // 总权重
         if (chess[x][y].color > 0) { // 坐标有子
@@ -70,40 +72,71 @@ public class FiveChessAI_copy /* extends Thread */ {
         line[3] = singleLine(x, y, color, -1, 1);
         /*TODO 根据四线权重计算总权重，形成33，权重另计但不能比自身5连权重高。*/
         //创建Map, 用于统计每种权重的个数
-        SparseIntArray weightMap = new SparseIntArray();
+        SparseIntArray map = new SparseIntArray();
         for (int i = 0; i <= Constant.CHECKMATE; i++) {
-            weightMap.put(i, 0);
+            map.put(i, 0);
         }
         //统计
         for (int i : line) {
-            weightMap.put(i, weightMap.get(i) + 1);
+            map.put(i, map.get(i) + 1);
         }
 
         for (int i = Constant.CHECKMATE; i > 0; i--) {
-            if (weightMap.get(i) >= 1) {
+            if (map.get(i) >= 1) {
                 //找到最大权重
-                weight = i;
-                if (weight >= Constant.RIVAL_R_0_DELAY_1) {
-                    //当最大权重大于Constant.RIVAL_R_0_DELAY_1时, 直接返回
+                weight = i * 10;
+                if (i >= Constant.RIVAL_R_0_D_1) {
+                    //当最大权重大于Constant.RIVAL_R_0_D_1时, 直接返回
                     return weight;
                 }
                 break;
             }
         }
-        if (weightMap.get(Constant.R_1_DELAY_1) > 1 ||
-                (weightMap.get(Constant.R_1_DELAY_1) == 1 && weightMap.get(Constant.R_1_DELAY_2) > 0)) {
+        if (map.get(Constant.R_1_D_1) > 1 ||
+                (map.get(Constant.R_1_D_1) == 1 && map.get(Constant.R_1_D_2_L3) > 0) ||
+                (map.get(Constant.R_1_D_1) == 1 && map.get(Constant.R_1_D_2_J3) > 0)) {
             //让0缓1 = 让1缓1 + 让1缓1 = 让1缓1 + 让1缓2
-            weight = Constant.R_0_DELAY_1;
-        } else if (weightMap.get(Constant.R_1_DELAY_2) > 1) {
-            //让0缓2 = 让1缓2 + 让1缓2
-            weight = Constant.R_0_DELAY_2;
-        } else if (weightMap.get(Constant.RIVAL_R_1_DELAY_1) > 1 ||
-                (weightMap.get(Constant.RIVAL_R_1_DELAY_1) == 1 && weightMap.get(Constant.RIVAL_R_1_DELAY_2) > 0)) {
+            weight = Constant.R_0_D_1;
+        } else if (map.get(Constant.RIVAL_R_1_D_1) > 1 ||
+                (map.get(Constant.RIVAL_R_1_D_1) == 1 && map.get(Constant.RIVAL_R_1_D_2_L3) > 0) ||
+                (map.get(Constant.RIVAL_R_1_D_1) == 1 && map.get(Constant.RIVAL_R_1_D_2_J3) > 0)) {
             //让0缓1 = 让1缓1 + 让1缓1 = 让1缓1 + 让1缓2
-            weight = Constant.RIVAL_R_0_DELAY_1;
-        } else if (weightMap.get(Constant.RIVAL_R_1_DELAY_2) > 1) {
+            weight = Constant.RIVAL_R_0_D_1;
+        } else if ((map.get(Constant.R_1_D_2_L3) > 1) ||
+                (map.get(Constant.R_1_D_2_J3) > 1) ||
+                (map.get(Constant.R_1_D_2_L3) >= 1 && (map.get(Constant.R_1_D_2_J3) >= 1))) {
             //让0缓2 = 让1缓2 + 让1缓2
-            weight = Constant.RIVAL_R_0_DELAY_2;
+            weight = Constant.R_0_D_2;
+        } else if ((map.get(Constant.RIVAL_R_1_D_2_L3) > 1) ||
+                (map.get(Constant.RIVAL_R_1_D_2_J3) > 1) ||
+                (map.get(Constant.RIVAL_R_1_D_2_L3) >= 1 &&
+                        (map.get(Constant.RIVAL_R_1_D_2_J3) >= 1))) {
+            //让0缓2 = 让1缓2 + 让1缓2
+            weight = Constant.RIVAL_R_0_D_2;
+        } else if (weight == Constant.R_1_D_1 &&
+                (map.get(Constant.RIVAL_R_1_D_1) == 1 ||
+                        map.get(Constant.RIVAL_R_1_D_2_L3) == 1 ||
+                        map.get(Constant.RIVAL_R_1_D_2_J3) == 1)) {
+            //己方让1缓1, 对方让1的权重, 与让0缓2平级
+            weight += 10;
+        } else if (weight == Constant.R_1_D_2_L3 &&
+                (map.get(Constant.RIVAL_R_1_D_1) == 1 ||
+                        map.get(Constant.RIVAL_R_1_D_2_L3) == 1 ||
+                        map.get(Constant.RIVAL_R_1_D_2_J3) == 1)) {
+            //己方活三(让1缓2), 对方让1的权重, 优于让1缓1
+            weight += 15;
+        } else if (weight == Constant.R_1_D_2_J3 &&
+                (map.get(Constant.RIVAL_R_1_D_1) == 1 ||
+                        map.get(Constant.RIVAL_R_1_D_2_L3) == 1 ||
+                        map.get(Constant.RIVAL_R_1_D_2_J3) == 1)) {
+            //己方跳三(让1缓2), 对方让1的权重, 优于让1缓1
+            weight += 25;
+        } else if (color == computerColor && weight >= Constant.R_1_D_2_J3) {
+            //己方权重大于跳三(让1缓2)的权重时, 每存在一个己方让2, 则权重+1
+            weight += map.get(Constant.R_2_D_2) + map.get(Constant.R_2_D_3);
+        } else if (color != computerColor && weight >= Constant.RIVAL_R_1_D_2_J3) {
+            //对方权重大于对方跳三(让1缓2)的权重时, 每存在一个对方让2, 则权重+1
+            weight += map.get(Constant.RIVAL_R_2_D_2) + map.get(Constant.RIVAL_R_2_D_3);
         }
 
         if (x == 7 && y == 7) { // 中间点权重+1
@@ -132,36 +165,36 @@ public class FiveChessAI_copy /* extends Thread */ {
             if (isCheckmate(leftSame, rightSame))
                 return Constant.CHECKMATE;
             if (isLife4(leftLive, rightLive, leftSame, rightSame))
-                return Constant.R_0_DELAY_1;
+                return Constant.R_0_D_1;
             if (isRush4(leftLive, rightLive, leftSame, rightSame))
-                return Constant.R_1_DELAY_1;
+                return Constant.R_1_D_1;
             if (isJump4(leftSpace, rightSpace, leftSame, rightSame, leftNSame, rightNSame))
-                return Constant.R_1_DELAY_1;
+                return Constant.R_1_D_1;
             if (isLife3(leftLive, rightLive, leftSpace, rightSpace, leftSame, rightSame))
-                return Constant.R_1_DELAY_2;
+                return Constant.R_1_D_2_L3;
             if (isJump3(leftSpace, rightSpace, leftSame, rightSame, leftNSame, rightNSame))
-                return Constant.R_1_DELAY_2;
+                return Constant.R_1_D_2_J3;
             if (isSleep3(leftLive, rightLive, leftSpace, rightSpace, leftSame, rightSame))
-                return Constant.R_2_DELAY_2;
+                return Constant.R_2_D_2;
             if (isLife2(rightLive, leftSpace, rightSpace, leftSame, rightSame))
-                return Constant.R_2_DELAY_3;
+                return Constant.R_2_D_3;
         } else {//对方
             if (isCheckmate(leftSame, rightSame))
                 return Constant.RIVAL_CHECKMATE;
             if (isLife4(leftLive, rightLive, leftSame, rightSame))
-                return Constant.RIVAL_R_0_DELAY_1;
+                return Constant.RIVAL_R_0_D_1;
             if (isRush4(leftLive, rightLive, leftSame, rightSame))
-                return Constant.RIVAL_R_1_DELAY_1;
+                return Constant.RIVAL_R_1_D_1;
             if (isJump4(leftSpace, rightSpace, leftSame, rightSame, leftNSame, rightNSame))
-                return Constant.RIVAL_R_1_DELAY_1;
+                return Constant.RIVAL_R_1_D_1;
             if (isLife3(leftLive, rightLive, leftSpace, rightSpace, leftSame, rightSame))
-                return Constant.RIVAL_R_1_DELAY_2;
+                return Constant.RIVAL_R_1_D_2_L3;
             if (isJump3(leftSpace, rightSpace, leftSame, rightSame, leftNSame, rightNSame))
-                return Constant.RIVAL_R_1_DELAY_2;
+                return Constant.RIVAL_R_1_D_2_J3;
             if (isSleep3(leftLive, rightLive, leftSpace, rightSpace, leftSame, rightSame))
-                return Constant.RIVAL_R_2_DELAY_2;
+                return Constant.RIVAL_R_2_D_2;
             if (isLife2(rightLive, leftSpace, rightSpace, leftSame, rightSame))
-                return Constant.RIVAL_R_2_DELAY_3;
+                return Constant.RIVAL_R_2_D_3;
         }
         return 0;
     }
@@ -192,7 +225,8 @@ public class FiveChessAI_copy /* extends Thread */ {
                 (rightLive == 0 && leftSame == 3 && leftLive > 3);
     }
 
-    private boolean isJump4(int leftSpace, int rightSpace, int leftSame, int rightSame, int leftNSame, int rightNSame) {
+    private boolean isJump4(int leftSpace, int rightSpace, int leftSame,
+                            int rightSame, int leftNSame, int rightNSame) {
         return (leftSpace == 1 && leftNSame >= 3) ||
                 (leftSame == 1 && leftNSame >= 3) ||
                 (leftSame == 2 && leftNSame >= 3) ||
@@ -207,13 +241,15 @@ public class FiveChessAI_copy /* extends Thread */ {
                 (rightSpace == 1 && rightNSame >= 1 && leftSame >= 2);
     }
 
-    private boolean isLife3(int leftLive, int rightLive, int leftSpace, int rightSpace, int leftSame, int rightSame) {
+    private boolean isLife3(int leftLive, int rightLive, int leftSpace,
+                            int rightSpace, int leftSame, int rightSame) {
         return (leftSame == 2 && leftLive > 2 && rightSpace > 0) ||
                 (leftSame == 1 && leftLive > 1 && rightSame == 1 && rightLive > 1) ||
                 (leftSpace > 0 && rightSame == 2 && rightLive > 2);
     }
 
-    private boolean isJump3(int leftSpace, int rightSpace, int leftSame, int rightSame, int leftNSame, int rightNSame) {
+    private boolean isJump3(int leftSpace, int rightSpace, int leftSame,
+                            int rightSame, int leftNSame, int rightNSame) {
         return (leftSpace == 1 && leftNSame == 2) ||
                 (leftSame == 1 && leftNSame == 2) ||
                 (leftSpace == 1 && leftNSame == 1 && rightSame == 1) ||
@@ -222,7 +258,8 @@ public class FiveChessAI_copy /* extends Thread */ {
                 (rightSpace == 1 && rightNSame == 1 && leftSame == 1);
     }
 
-    private boolean isSleep3(int leftLive, int rightLive, int leftSpace, int rightSpace, int leftSame, int rightSame) {
+    private boolean isSleep3(int leftLive, int rightLive, int leftSpace,
+                             int rightSpace, int leftSame, int rightSame) {
         return (leftSame == 2 && leftLive == 2 && rightSpace == 1 && rightLive >= 2) ||
                 (leftSame == 1 && leftLive == 1 && rightSame == 1 && rightLive >= 3) ||
                 (leftLive == 0 && rightSame == 2 && rightLive >= 4) ||
@@ -231,10 +268,12 @@ public class FiveChessAI_copy /* extends Thread */ {
                 (rightLive == 0 && leftSame == 2 && leftLive >= 4);
     }
 
-    private boolean isLife2(int rightLive, int leftSpace, int rightSpace, int leftSame, int rightSame) {
+    private boolean isLife2(int rightLive, int leftSpace, int rightSpace,
+                            int leftSame, int rightSame) {
         return (leftSame == 1 && rightLive > 1 && rightSpace > 0) ||
                 (rightSame == 1 && rightLive > 1 && leftSpace > 0);
     }
+
 
     /**
      * 往一个方向查找指定颜色数 （0空，1黑，2白）
