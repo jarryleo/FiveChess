@@ -53,7 +53,6 @@ public class FiveChessAI_base implements AI_Interface {
         return "基础号引擎";
     }
 
-
     private void calculateWeight() { // 获取双方所有坐标的权重
         for (int i = 0; i < chess.length; i++) {
             for (int j = 0; j < chess[i].length; j++) {
@@ -136,4 +135,6 @@ public class FiveChessAI_base implements AI_Interface {
         }
         return num;
     }
+
+
 }

@@ -249,7 +249,12 @@ public class ChessBoard extends View {
         isGameOver = false;
         mIndex = 0;
         lastColor = 0;
-        invalidate();//重绘
+        post(new Runnable() {
+            @Override
+            public void run() {
+                invalidate();//重绘
+            }
+        });
     }
 
     /*设置监听*/
@@ -274,11 +279,17 @@ public class ChessBoard extends View {
         mChess[x][y].x = x;
         mChess[x][y].y = y;
         lock = !lock;
-        invalidate();
         if (mChessDownLister != null && isFive()) {
             isGameOver = true;
             mChessDownLister.onGameOver(lastColor);
         }
+        post(new Runnable() {
+            @Override
+            public void run() {
+                invalidate();
+            }
+        });
+
     }
 
     /*锁定人类走子*/

@@ -59,11 +59,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     private void initData() {
         mBoard.startGame();
         if (mode == CHESS_MODE_AI_VS_AI) {
-            if (firstSide == FIRST_GO_AI_A) { //如果机器先走
-                AI_A_go(CHESS_COLOR_BLACK); //黑子先走
-            } else if (firstSide == FIRST_GO_AI_B) { //如果机器先走
-                AI_B_go(CHESS_COLOR_BLACK); //黑子先走
-            }
+            AIFight();
         } else if (mode == CHESS_MODE_HUMAN_VS_AI) {//人机模式
             if (firstSide == FIRST_GO_AI_A) { //如果机器先走
                 AI_A_go(3 - humanColor);
@@ -71,6 +67,19 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
                 AI_B_go(3 - humanColor);
             }
         }
+    }
+
+    private void AIFight() {
+        new Thread() {
+            @Override
+            public void run() {
+                if (firstSide == FIRST_GO_AI_A) { //如果机器先走
+                    AI_A_go(CHESS_COLOR_BLACK); //黑子先走
+                } else if (firstSide == FIRST_GO_AI_B) { //如果机器先走
+                    AI_B_go(CHESS_COLOR_BLACK); //黑子先走
+                }
+            }
+        }.start();
     }
 
     @Override
@@ -151,8 +160,14 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
                     score_a++;
                 }
             }
-            mTv_score_a.setText("AI：" + mAI_A.getAIName() + "胜利次数：" + score_a);
-            mTv_score_a.setText("AI：" + mAI_B.getAIName() + "胜利次数：" + score_b);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mTv_score_a.setText(mAI_A.getAIName() + ":" + score_a);
+                    mTv_score_b.setText(mAI_B.getAIName() + ":" + score_b);
+                }
+            });
+
             if (count < 10000) { //下10000局
                 if (firstSide == FIRST_GO_AI_A) { //交换先手
                     firstSide = FIRST_GO_AI_B;
