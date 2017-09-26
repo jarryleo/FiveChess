@@ -5,13 +5,13 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 
-import cn.leo.fivechess.AI.FiveChessAI;
+import cn.leo.fivechess.AI.FiveChessAI_copy;
 import cn.leo.fivechess.bean.Chess;
 import cn.leo.fivechess.view.ChessBoard;
 
 public class MainActivity extends AppCompatActivity implements ChessBoard.onChessDownListener {
     private ChessBoard mBoard;
-    private FiveChessAI mAI = new FiveChessAI();
+    private FiveChessAI_copy mAI = new FiveChessAI_copy();
     private boolean isGameOver;
 
     @Override
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     }
 
     private void AIgo() {
-        Chess point = mAI.getPoint(mBoard.getChess(), 2);
+        Chess point = mAI.AIGo(mBoard.getChess(), 2);
         mBoard.setChess(point.x, point.y, 2);
     }
 

@@ -190,7 +190,7 @@ public class ChessBoard extends View {
                     //落子
                     int x = (int) ((event.getX() + 0.5 * mDistance) / mDistance) - 1;
                     int y = (int) ((event.getY() + 0.5 * mDistance) / mDistance) - 1;
-                    if (mChessDownLister != null && !turn) {
+                    if (mChessDownLister != null && !turn && mChess[x][y].color == 0) {
                         mChessDownLister.onChessDown(x, y);
                     }
                 }

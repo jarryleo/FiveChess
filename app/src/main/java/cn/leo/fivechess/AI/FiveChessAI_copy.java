@@ -1,9 +1,6 @@
 package cn.leo.fivechess.AI;
 
-import android.util.ArrayMap;
-
-import java.util.HashMap;
-import java.util.Map;
+import android.util.SparseIntArray;
 
 import cn.leo.fivechess.bean.Chess;
 
@@ -30,10 +27,17 @@ public class FiveChessAI_copy /* extends Thread */ {
         for (int i = 0; i < chess.length; i++) {
             for (int j = 0; j < chess[i].length; j++) {
                 if (max <= ownWeight[i][j]) {
-                    if (Math.random() * 100 > 66 && max == ownWeight[i][j]) { //加点随机事件
+                    if (Math.random() * 100 < 33 && max == ownWeight[i][j]) { //加点随机事件
+                        max = ownWeight[i][j]; // 获取最大权重
+                        x = i; // 获取坐标
+                        y = j;
+                    }
+                }
+                if (max <= oppositeWeight[i][j]) {
+                    if (Math.random() * 100 > 66 && max == oppositeWeight[i][j]) { //加点随机事件
                         continue;
                     }
-                    max = ownWeight[i][j]; // 获取最大权重
+                    max = oppositeWeight[i][j]; // 获取最大权重
                     x = i; // 获取坐标
                     y = j;
                 }
@@ -66,13 +70,8 @@ public class FiveChessAI_copy /* extends Thread */ {
         line[3] = singleLine(x, y, color, -1, 1);
         /*TODO 根据四线权重计算总权重，形成33，权重另计但不能比自身5连权重高。*/
         //创建Map, 用于统计每种权重的个数
-        Map<Integer, Integer> weightMap;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-            weightMap = new ArrayMap<>();
-        } else {
-            weightMap = new HashMap<>();
-        }
-        for (int i = 1; i <= Constant.CHECKMATE; i++) {
+        SparseIntArray weightMap = new SparseIntArray();
+        for (int i = 0; i <= Constant.CHECKMATE; i++) {
             weightMap.put(i, 0);
         }
         //统计
@@ -250,7 +249,8 @@ public class FiveChessAI_copy /* extends Thread */ {
      */
     private int oneSide(int x, int y, int color, int px, int py, int mode) {
         int num = 0, space = 0;
-        do {
+        while (!(x + px < 0 || x + px > 14 ||
+                y + py < 0 || y + py > 14)) {
             x += px;
             y += py;
             if (chess[x][y].color == 3 - color) break;
@@ -261,7 +261,7 @@ public class FiveChessAI_copy /* extends Thread */ {
                 continue;
             }
             num++;
-        } while (!(x < 0 || x > 14 || y < 0 || y > 14)); // 边界检测
+        }
         return num;
     }
 }
