@@ -32,12 +32,12 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     private AI_Interface mAI_A = new FiveChessAI_demo(); //TODO AI引擎1
     private AI_Interface mAI_B = new FiveChessAI_lsw();//TODO AI引擎2
     /*人机模式*/
-    //private int mode = CHESS_MODE_HUMAN_VS_AI; //TODO 设置下棋模式 、改成人机模式自动对战10000次，计算最终比分
-    //private int firstSide = FIRST_GO_HUMAN;//上面没有human，这里就不能写human
+    private int mode = CHESS_MODE_HUMAN_VS_AI; //TODO 设置下棋模式 、改成人机模式自动对战10000次，计算最终比分
+    private int firstSide = FIRST_GO_HUMAN;//上面没有human，这里就不能写human
     private int humanColor = CHESS_COLOR_BLACK; //人类下子颜色
     /*AI对战*/
-    private int mode = CHESS_MODE_AI_VS_AI;
-    private int firstSide = FIRST_GO_AI_A;
+//    private int mode = CHESS_MODE_AI_VS_AI;
+//    private int firstSide = FIRST_GO_AI_A;
 
 
     @Override
