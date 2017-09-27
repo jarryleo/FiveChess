@@ -142,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     isGameOver = true;
+                    mBoard.setLock(false);
                 }
             });
             builder.setCancelable(false);
