@@ -6,7 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.SystemClock;
 import android.util.AttributeSet;
-import android.util.Log;
+import android.util.SparseIntArray;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -42,7 +42,8 @@ public class ChessBoard extends View {
     private int lastY;//最后落子坐标Y
     private int lastColor;//最后落子颜色
     private boolean lock;//是否锁定人类下子
-    private boolean isGameOver;
+    private boolean isGameOver;//棋局是否结束
+    private SparseIntArray steps = new SparseIntArray();//记录每次落子位置。便于悔棋
 
     public ChessBoard(Context context) {
         this(context, null);
@@ -191,7 +192,7 @@ public class ChessBoard extends View {
                     //落子
                     int x = (int) ((event.getX() + 0.5 * mDistance) / mDistance) - 1;
                     int y = (int) ((event.getY() + 0.5 * mDistance) / mDistance) - 1;
-                    if (mChessDownLister != null && !lock && mChess[x][y].color == 0) {
+                    if (mChessDownLister != null && !lock && mChess[x][y].color < 1) {
                         mChessDownLister.onChessDown(x, y);
                     }
                 }
@@ -250,6 +251,7 @@ public class ChessBoard extends View {
         isGameOver = false;
         mIndex = 0;
         lastColor = 0;
+        //steps.clear();
         post(new Runnable() {
             @Override
             public void run() {
@@ -267,10 +269,41 @@ public class ChessBoard extends View {
         return mChess;
     }
 
+    public int getLastColor() {
+        return lastColor;
+    }
+
+    /*悔棋*/
+    public void back() {
+        int i = steps.get(mIndex, -1);//取出最后落子位置
+        if (i == -1) {
+            return;
+        }
+        int x = i % mLines;
+        int y = i / mLines;
+        mChess[x][y].color = ~mChess[x][y].color;
+    }
+
+    /*撤销悔棋*/
+    public void next() {
+        int i = steps.get(mIndex + 1, -1);//取出最后落子位置
+        if (i == -1) {
+            return;
+        }
+        mIndex++;
+        int x = i % mLines;
+        int y = i / mLines;
+        mChess[x][y].color = ~mChess[x][y].color;
+    }
+
     /*落子*/
-    public void setChess(int x, int y, int color) {
-        if (isGameOver) return;
-        Log.e("落子", "x=" + x + " y=" + y + " color=" + color);
+    public boolean setChess(int x, int y, int color) {
+        return setChess(x, y, color, true);
+    }
+
+    /*落子 带参刷新UI*/
+    public synchronized boolean setChess(int x, int y, int color, boolean refreshUI) {
+        if (isGameOver) return false;
         mIndex++;
         lastX = x;
         lastY = y;
@@ -280,17 +313,20 @@ public class ChessBoard extends View {
         mChess[x][y].x = x;
         mChess[x][y].y = y;
         lock = !lock;
+        //steps.put(mIndex, y * mLines + x);//记录落子位置
         if (mChessDownLister != null && isFive()) {
             isGameOver = true;
             mChessDownLister.onGameOver(lastColor);
         }
-        post(new Runnable() {
-            @Override
-            public void run() {
-                invalidate();
-            }
-        });
-
+        if (refreshUI) {
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    invalidate();
+                }
+            });
+        }
+        return true;
     }
 
     /*锁定人类走子*/

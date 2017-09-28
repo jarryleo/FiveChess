@@ -2,6 +2,9 @@ package cn.leo.fivechess;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
@@ -21,7 +24,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     private static final int FIRST_GO_AI_B = 3;//AI_B先走
     private static final int CHESS_COLOR_BLACK = 1;//黑子颜色
     private static final int CHESS_COLOR_WHITE = 2;//白子颜色
-
+    private Handler mHandler;
     private ChessBoard mBoard; //棋盘，兼裁判
     private TextView mTv_score_a; //计分a
     private TextView mTv_score_b; //计分b
@@ -29,15 +32,15 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     private int score_b;
     private int count;//下棋局数
     private boolean isGameOver; //当前棋局是否结束
+    private int humanColor = CHESS_COLOR_BLACK; //人类下子颜色
     private AI_Interface mAI_A = new FiveChessAI_demo(); //TODO AI引擎1
     private AI_Interface mAI_B = new FiveChessAI_lsw();//TODO AI引擎2
     /*人机模式*/
-    private int mode = CHESS_MODE_HUMAN_VS_AI; //TODO 设置下棋模式 、改成人机模式自动对战10000次，计算最终比分
-    private int firstSide = FIRST_GO_HUMAN;//上面没有human，这里就不能写human
-    private int humanColor = CHESS_COLOR_BLACK; //人类下子颜色
+//    private int mode = CHESS_MODE_HUMAN_VS_AI; //TODO 设置下棋模式 、改成人机模式自动对战10000次，计算最终比分
+//    private int firstSide = FIRST_GO_HUMAN;//上面没有human，这里就不能写human
     /*AI对战*/
-//    private int mode = CHESS_MODE_AI_VS_AI;
-//    private int firstSide = FIRST_GO_AI_A;
+    private int mode = CHESS_MODE_AI_VS_AI;
+    private int firstSide = FIRST_GO_AI_A;
 
 
     @Override
@@ -54,6 +57,23 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
         mTv_score_a = (TextView) findViewById(R.id.score_a);
         mTv_score_b = (TextView) findViewById(R.id.score_b);
         mBoard.setOnChessDownListener(this);
+        //开一个子线程执行的handler
+        HandlerThread handlerThread = new HandlerThread("AI");
+        handlerThread.start();
+        //handler的handleMessage在上面的线程中执行
+        mHandler = new Handler(handlerThread.getLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                    case FIRST_GO_AI_A:
+                        AI_A_go(msg.arg1);
+                        break;
+                    case FIRST_GO_AI_B:
+                        AI_B_go(msg.arg1);
+                        break;
+                }
+            }
+        };
     }
 
     private void initData() {
@@ -70,16 +90,11 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     }
 
     private void AIFight() {
-        new Thread() {
-            @Override
-            public void run() {
-                if (firstSide == FIRST_GO_AI_A) { //如果机器先走
-                    AI_A_go(CHESS_COLOR_BLACK); //黑子先走
-                } else if (firstSide == FIRST_GO_AI_B) { //如果机器先走
-                    AI_B_go(CHESS_COLOR_BLACK); //黑子先走
-                }
-            }
-        }.start();
+        if (firstSide == FIRST_GO_AI_A) { //如果机器A先走
+            mHandler.obtainMessage(FIRST_GO_AI_A, CHESS_COLOR_BLACK, 0).sendToTarget();
+        } else if (firstSide == FIRST_GO_AI_B) { //如果机器B先走
+            mHandler.obtainMessage(FIRST_GO_AI_B, CHESS_COLOR_BLACK, 0).sendToTarget();
+        }
     }
 
     @Override
@@ -97,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
         mBoard.setChess(x, y, humanColor);
         if (mode == CHESS_MODE_HUMAN_VS_AI) {
             AI_A_go(3 - humanColor);
-            //AI_B_go(3 - humanColor);
+            //AI_B_go(3 - humanColor); // TODO 选择AI引擎
         } else if (mode == CHESS_MODE_HUMAN_VS_HUMAN) {
             mBoard.setLock(false);
         } else if (mode == CHESS_MODE_AI_VS_AI) {
@@ -108,18 +123,20 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     /*一个AI走子*/
     private void AI_A_go(int color) {
         Chess point = mAI_A.AIGo(mBoard.getChess(), color);
-        mBoard.setChess(point.x, point.y, color);
-        if (mode == CHESS_MODE_AI_VS_AI) {
-            AI_B_go(3 - color);
+        boolean down = mBoard.setChess(point.x, point.y, color, mode != CHESS_MODE_AI_VS_AI);
+        if (down && mode == CHESS_MODE_AI_VS_AI) {
+            //AI_B_go(3 - color);
+            mHandler.obtainMessage(FIRST_GO_AI_B, 3 - color, 0).sendToTarget();
         }
     }
 
     /*另一个AI走子*/
     private void AI_B_go(int color) {
         Chess point = mAI_B.AIGo(mBoard.getChess(), color);
-        mBoard.setChess(point.x, point.y, color);
-        if (mode == CHESS_MODE_AI_VS_AI) {
-            AI_A_go(3 - color);
+        boolean down = mBoard.setChess(point.x, point.y, color, mode != CHESS_MODE_AI_VS_AI);
+        if (down && mode == CHESS_MODE_AI_VS_AI) {
+            //AI_A_go(3 - color);
+            mHandler.obtainMessage(FIRST_GO_AI_A, 3 - color, 0).sendToTarget();
         }
     }
 
@@ -133,8 +150,8 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
             } else {
                 score_b++;
             }
-            mTv_score_a.setText("人类：" + score_a);
-            mTv_score_b.setText("AI：" + score_b);
+            mTv_score_a.setText("(" + (humanColor == CHESS_COLOR_BLACK ? "黑" : "白") + ")人类：" + score_a);
+            mTv_score_b.setText("(" + (humanColor == CHESS_COLOR_BLACK ? "白" : "黑") + ")AI：" + score_b);
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(winColor == humanColor ? "你赢了" : "你输了");
             builder.setMessage(winColor == humanColor ? "恭喜，你赢了!" : "别气馁，加把劲!");
@@ -164,8 +181,10 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mTv_score_a.setText(mAI_A.getAIName() + ":" + score_a);
-                    mTv_score_b.setText(mAI_B.getAIName() + ":" + score_b);
+                    mTv_score_a.setText("(" + (firstSide == FIRST_GO_AI_A ? "黑" : "白") + ")"
+                            + mAI_A.getAIName() + ":" + score_a);
+                    mTv_score_b.setText("(" + (firstSide == FIRST_GO_AI_B ? "黑" : "白") + ")"
+                            + mAI_B.getAIName() + ":" + score_b);
                 }
             });
 
