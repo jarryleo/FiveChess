@@ -314,10 +314,6 @@ public class ChessBoard extends View {
         mChess[x][y].y = y;
         lock = !lock;
         //steps.put(mIndex, y * mLines + x);//记录落子位置
-        if (mChessDownLister != null && isFive()) {
-            isGameOver = true;
-            mChessDownLister.onGameOver(lastColor);
-        }
         if (refreshUI) {
             post(new Runnable() {
                 @Override
@@ -326,6 +322,12 @@ public class ChessBoard extends View {
                 }
             });
         }
+        if (mChessDownLister != null && isFive()) {
+            isGameOver = true;
+            mChessDownLister.onGameOver(lastColor);
+            return false;
+        }
+
         return true;
     }
 
