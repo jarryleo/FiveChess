@@ -65,13 +65,13 @@ public class FiveChessAI_leo implements AI_Interface {
                 }
             }
         }
-
+        //对方将要5连但是可以拦截
         if (oppositeMax == STEP_DANGER) {
             point.x = x2;
             point.y = y2;
             return point;
         }
-
+        //对方双线成杀，不可拦截，自己走冲四或跳四
         if (oppositeMax == STEP_SLAY) {
             for (int i = 0; i < chess.length; i++) {
                 for (int j = 0; j < chess[i].length; j++) {
@@ -83,6 +83,7 @@ public class FiveChessAI_leo implements AI_Interface {
                 }
             }
         }
+        //哪边权重大走哪边
         if (ownMax >= oppositeMax) {
             point.x = x1;
             point.y = y1;
@@ -148,7 +149,7 @@ public class FiveChessAI_leo implements AI_Interface {
                 weight += 1000;
                 //余下
             } else {
-                weight += life * 100 + side + 10 + jump;
+                weight = weight + life * 100 + side + 10 + jump;
                 if (x == 7 && y == 7 && color == computerColor) {
                     weight += 100;
                 }
