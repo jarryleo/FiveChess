@@ -217,19 +217,7 @@ public class FiveChessAI_leo implements AI_Interface {
         return num;
     }
 
-
-    /**
-     * 往一个方向查找指定颜色数 （0空，1黑，2白）
-     *
-     * @param x     当前点x坐标
-     * @param y     当前点y坐标
-     * @param color 查找的颜色
-     * @param px    方向控制 +1 0 -1
-     * @param py    方向控制 +1 0 -1
-     * @param mode  查找模式 1查找相邻的连续同色；2查找不相邻的同色(最多间隔一个空)；0：查找同色和空格；
-     * @return 返回一个方向的查找到的数目，不包含当前点
-     * @author 刘佳睿 这只是 查找一条线指定方向 的 棋子数 ，可以自己调教
-     */
+    /*单线参数获取*/
     private int oneSide(int x, int y, int color, int px, int py, int mode) {
         int num = 0, space = 0;
         while (!(x + px < 0 || x + px > 14 ||
