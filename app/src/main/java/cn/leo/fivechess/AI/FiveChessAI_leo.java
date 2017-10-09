@@ -38,7 +38,7 @@ public class FiveChessAI_leo implements AI_Interface {
                     ownMax = ownWeight[i][j]; // 获取己方最大权重
                     x1 = i; // 获取坐标
                     y1 = j;
-                    Log.i("own", "AIGo: weight=" + ownMax + " x = " + x1+" y = " + y1);
+                    Log.i("own", "AIGo: weight=" + ownMax + " x = " + x1 + " y = " + y1);
                 } else if (ownMax == ownWeight[i][j]) {
                     if (Math.random() * 100 < 50) { //权重相同加点随机事件
                         ownMax = ownWeight[i][j]; // 获取己方最大权重
@@ -46,7 +46,7 @@ public class FiveChessAI_leo implements AI_Interface {
                         y1 = j;
                     }
                 }
-                if (ownMax == STEP_KILL) {
+                if (ownMax == STEP_KILL || ownMax == STEP_DANGER) {
                     point.x = x1;
                     point.y = y1;
                     return point;
@@ -55,7 +55,7 @@ public class FiveChessAI_leo implements AI_Interface {
                     oppositeMax = oppositeWeight[i][j]; // 获取对方最大权重
                     x2 = i; // 获取坐标
                     y2 = j;
-                    Log.i("opposite", "AIGo: weight=" + oppositeMax + " x = " + x2+" y = " + y2);
+                    Log.i("opposite", "AIGo: weight=" + oppositeMax + " x = " + x2 + " y = " + y2);
                 } else if (oppositeMax == oppositeWeight[i][j]) {
                     if (Math.random() * 100 > 50) { //权重相同加点随机事件
                         oppositeMax = oppositeWeight[i][j]; // 获取对方最大权重
@@ -130,11 +130,11 @@ public class FiveChessAI_leo implements AI_Interface {
                 if (life == side || life == jump % 10) {
                     weight = STEP_DANGER; //冲5或跳5
                 }
-                break;
+                return weight;
             }
             if (life == 4) { //活4
                 weight = STEP_FOUR;
-                break;
+                return weight;
             }
             //活三，冲四 ，跳四，活跳三
             if (life == 3 || side == 4 || jump % 10 == 4 || (jump / 10 == 0 && jump % 10 == 3)) {
