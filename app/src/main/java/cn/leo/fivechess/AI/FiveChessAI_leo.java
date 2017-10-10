@@ -31,7 +31,7 @@ public class FiveChessAI_leo implements AI_Interface {
         int x2 = -1, y2 = -1;
         int ownMax = 0; // 己方最大权重
         int oppositeMax = 0; // 对方最大权重
-
+        int oppositeMin = 0; // 对方最小权重
         for (int i = 0; i < chess.length; i++) {
             for (int j = 0; j < chess[i].length; j++) {
                 if (ownMax < ownWeight[i][j]) {
@@ -44,6 +44,7 @@ public class FiveChessAI_leo implements AI_Interface {
                         ownMax = ownWeight[i][j]; // 获取己方最大权重
                         x1 = i; // 获取坐标
                         y1 = j;
+                        Log.i("own", "AIGo: weight=" + ownMax + " x = " + x1 + " y = " + y1);
                     }
                 }
                 if (ownMax == STEP_KILL || ownMax == STEP_DANGER) {
@@ -61,21 +62,19 @@ public class FiveChessAI_leo implements AI_Interface {
                         oppositeMax = oppositeWeight[i][j]; // 获取对方最大权重
                         x2 = i; // 获取坐标
                         y2 = j;
+                        Log.i("opposite", "AIGo: weight=" + oppositeMax + " x = " + x2 + " y = " + y2);
                     }
+                }
+                if (oppositeMin > oppositeWeight[i][j]) { //最小权重，负的，对面已有形式判断
+                    oppositeMin = oppositeWeight[i][j];
                 }
             }
         }
-        //对方将要5连但是可以拦截
-        if (oppositeMax == STEP_DANGER) {
-            point.x = x2;
-            point.y = y2;
-            return point;
-        }
-        //对方双线成杀，不可拦截，自己走冲四或跳四
-        if (oppositeMax == STEP_SLAY) {
+        //对方双线成杀，不拦截，全力冲四跳四
+        if (oppositeMin == -STEP_SLAY) {
             for (int i = 0; i < chess.length; i++) {
                 for (int j = 0; j < chess[i].length; j++) {
-                    if (ownWeight[i][j] == STEP_AT_FOUR) {
+                    if (ownWeight[i][j] == STEP_AT_FOUR || ownWeight[i][j] == STEP_FOUR) {
                         point.x = i;
                         point.y = j;
                         return point;
@@ -83,13 +82,24 @@ public class FiveChessAI_leo implements AI_Interface {
                 }
             }
         }
-        //哪边权重大走哪边
-        if (ownMax >= oppositeMax) {
-            point.x = x1;
-            point.y = y1;
-        } else {
+        //对方将要5连但是可以拦截 或 对方即将双线成杀 立即去拦截
+        if (oppositeMax == STEP_DANGER || oppositeMax == STEP_SLAY) {
             point.x = x2;
             point.y = y2;
+            return point;
+        }
+        if (ownMax == STEP_FOUR) { //自己将活四
+            point.x = x1;
+            point.y = y1;
+        } else if (oppositeMax == STEP_FOUR) { //对面将活四
+            point.x = x2;
+            point.y = y2;
+        } else if (oppositeMax > ownMax * 2) { //优先自己，除非对面高一倍
+            point.x = x2;
+            point.y = y2;
+        } else {
+            point.x = x1;
+            point.y = y1;
         }
         return point;
     }
@@ -111,8 +121,9 @@ public class FiveChessAI_leo implements AI_Interface {
 
     private int weightSum(int x, int y, int color) { // 一个坐标的四线总权重
         int weight = 0; // 总权重
-        if (chess[x][y].color > 0) { // 坐标处有子，没有权重
-            return 0;
+        if ((chess[x][y].color > 0 && color == computerColor)
+                || chess[x][y].color == computerColor) { // 坐标处有子，没有权重,对面权重计算需要判断已有局面
+            return -1;
         }
         /*获取 横竖 阳线，左斜线 右斜线 阴线 四线权重*/
         int[] line = new int[4];
@@ -123,25 +134,29 @@ public class FiveChessAI_leo implements AI_Interface {
         int doubleLine = 0;
         int four = 0;
         for (int i = 0; i < line.length; i++) {
-            int life = line[i] / 10000;
-            int side = line[i] / 1000 % 10;
+            int life = line[i] / 1000;
+            int side = line[i] / 100 % 10;
             int jump = line[i] % 100;
             if (life > 4) {
                 weight = STEP_KILL; //活5
                 if (life == side || life == jump % 10) {
                     weight = STEP_DANGER; //冲5或跳5
                 }
-                return weight;
+                return weight * ((chess[x][y].color > 0 && color != computerColor) ? -1 : 1);
             }
             if (life == 4) { //活4
                 weight = STEP_FOUR;
-                return weight;
+                return weight * ((chess[x][y].color > 0 && color != computerColor) ? -1 : 1);
             }
-            //活三，冲四 ，跳四，活跳三
-            if (life == 3 || side == 4 || jump % 10 == 4 || (jump / 10 == 0 && jump % 10 == 3)) {
+            //活三，冲四 ，跳四及以上，活跳三
+            if (life == 3 || side == 4 || jump % 10 >= 4 || (jump / 10 == 0 && jump % 10 == 3)) {
                 doubleLine++;
-                weight += 10000;
-                if (side == 4 || jump % 10 == 4) {
+                if (jump % 10 == 3) {
+                    weight += 9000;
+                } else {
+                    weight += 10000;
+                }
+                if (side == 4 || jump % 10 >= 4) {
                     four++;
                 }
                 //活二，冲三，冲跳三
@@ -149,8 +164,8 @@ public class FiveChessAI_leo implements AI_Interface {
                 weight += 1000;
                 //余下
             } else {
-                weight = weight + life * 100 + side + 10 + jump;
-                if (x == 7 && y == 7 && color == computerColor) {
+                weight = weight + life * 100 + side * 100 + (jump % 10) * 10 - (jump / 10);
+                if (x == 7 && y == 7) {
                     weight += 100;
                 }
             }
@@ -160,7 +175,7 @@ public class FiveChessAI_leo implements AI_Interface {
         } else if (doubleLine == 1 && four > 0) { // 冲四或跳四
             weight = STEP_AT_FOUR;
         }
-        return weight;
+        return weight * ((chess[x][y].color > 0 && color != computerColor) ? -1 : 1);
     }
 
     /*单线权重计算*/
@@ -175,7 +190,7 @@ public class FiveChessAI_leo implements AI_Interface {
         int life = isLife(leftLive, leftSame, rightLive, rightSame);
         int side = isSide(leftLive, leftSame, rightLive, rightSame);
         int jump = isJump(leftLive, leftSame, leftNSame, rightLive, rightSame, rightNSame);
-        return life * 10000 + side * 1000 + jump;
+        return life * 1000 + side * 100 + jump;
     }
 
     /*判断活几*/
@@ -200,22 +215,25 @@ public class FiveChessAI_leo implements AI_Interface {
         int sum = ls + rs + 1;
         int lj = sum + lns - ls;
         int rj = sum + rns - rs;
+        lj = lj == ls + 1 ? 0 : lj; //分开冲和跳
+        rj = rj == rs + 1 ? 0 : rj;
         int num = (lj > rj ? lj : rj);
         if (num >= 4) return num;
+        if (num < 2) return 0;
         int l_side = 0, r_side = 0;
-        if (lj == rj) {
-            if (lns + 1 == ll ^ rl == rs) {
-                l_side = 1;
-            }
-            if (rns + 1 == rl ^ ll == ls) {
-                r_side = 1;
-            }
-            if (l_side == 0 || r_side == 0) {
-                return num;
-            }
-            return 10 + num;
+        if ((lns + 1 >= ll) ^ (rl == rs)) {
+            l_side = 1;
         }
-        return num;
+        if ((rns + 1 >= rl) ^ (ll == ls)) {
+            r_side = 1;
+        }
+        if (lj == num && l_side == 0) {
+            return num;
+        }
+        if (rj == num && r_side == 0) {
+            return num;
+        }
+        return 10 + num;
     }
 
     /*单线参数获取*/

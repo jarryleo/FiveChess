@@ -250,14 +250,9 @@ public class ChessBoard extends View {
         mLocked = false;
         isGameOver = false;
         mIndex = 0;
-        lastColor = 0;
-        //steps.clear();
-        post(new Runnable() {
-            @Override
-            public void run() {
-                invalidate();//重绘
-            }
-        });
+        lastColor = 2;
+        steps.clear();
+        refreshUI();
     }
 
     /*设置监听*/
@@ -279,9 +274,12 @@ public class ChessBoard extends View {
         if (i == -1) {
             return;
         }
+        mIndex--;
+        lastColor = 3 - lastColor;
         int x = i % mLines;
         int y = i / mLines;
-        mChess[x][y].color = ~mChess[x][y].color;
+        mChess[x][y].color = 0;
+        refreshUI();
     }
 
     /*撤销悔棋*/
@@ -291,9 +289,21 @@ public class ChessBoard extends View {
             return;
         }
         mIndex++;
+        lastColor = 3 - lastColor;
         int x = i % mLines;
         int y = i / mLines;
-        mChess[x][y].color = ~mChess[x][y].color;
+        mChess[x][y].color = lastColor;
+        refreshUI();
+    }
+
+    /*刷新UI*/
+    public void refreshUI() {
+        post(new Runnable() {
+            @Override
+            public void run() {
+                invalidate();
+            }
+        });
     }
 
     /*落子*/
@@ -313,19 +323,17 @@ public class ChessBoard extends View {
         mChess[x][y].x = x;
         mChess[x][y].y = y;
         lock = !lock;
-        //steps.put(mIndex, y * mLines + x);//记录落子位置
+        steps.put(mIndex, y * mLines + x);//记录落子位置
         if (refreshUI) {
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    invalidate();
-                }
-            });
+            refreshUI();
         }
         if (mChessDownLister != null && isFive()) {
             isGameOver = true;
             mChessDownLister.onGameOver(lastColor);
             return false;
+        }
+        if (mIndex == 225 && mChessDownLister != null) {
+            mChessDownLister.onGameOver(0); //和棋
         }
 
         return true;
