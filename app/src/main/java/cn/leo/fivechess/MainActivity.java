@@ -9,6 +9,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import cn.leo.fivechess.AI.AI_Interface;
 import cn.leo.fivechess.AI.FiveChessAI_demo;
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
         findViewById(R.id.btn_start).setOnClickListener(this);
         findViewById(R.id.btn_next).setOnClickListener(this);
         findViewById(R.id.btn_pre).setOnClickListener(this);
+        findViewById(R.id.btn_next_round).setOnClickListener(this);
 
         mBoard.setOnChessDownListener(this);
         //开一个子线程执行的handler
@@ -155,6 +157,9 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     /*棋局结束*/
     @Override
     public void onGameOver(int winColor) {
+        if (winColor == 0) {
+            Toast.makeText(this, "和棋", Toast.LENGTH_SHORT).show();
+        }
         count++;
         if (mode == CHESS_MODE_HUMAN_VS_AI) { //人机
             if (winColor == humanColor) {
@@ -208,12 +213,12 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
                 }
                 turn = firstSide;//轮换
                 mBoard.refreshUI();
-                initData();
+                //initData();
             }
-        } else if (winColor == CHESS_COLOR_WHITE) {//人类 对 人类
+        } else if (mode == CHESS_MODE_HUMAN_VS_HUMAN) {//人类 对 人类
             if (winColor == CHESS_COLOR_BLACK) {
                 score_a++;
-            } else {
+            } else if (winColor == CHESS_COLOR_WHITE) {
                 score_b++;
             }
 
@@ -241,16 +246,22 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
             case R.id.btn_start:
                 auto = !auto;
                 ((TextView) v).setText(auto ? "暂停" : "开始");
-                mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 1).sendToTarget();
+                mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 0).sendToTarget();
                 turn = 5 - turn;
                 break;
             case R.id.btn_pre:
+                isGameOver = false;
                 mBoard.back();
                 turn = 5 - turn;
                 break;
             case R.id.btn_next:
                 //mBoard.next();
                 mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 1).sendToTarget();
+                turn = 5 - turn;
+                break;
+            case R.id.btn_next_round:
+                initData();
+                mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 0).sendToTarget();
                 turn = 5 - turn;
                 break;
         }

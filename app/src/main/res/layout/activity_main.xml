@@ -39,26 +39,36 @@
         android:layout_centerInParent="true"
         android:background="#aaa"
         android:elevation="5dp"/>
+
     <LinearLayout
-        android:layout_alignParentBottom="true"
-        android:orientation="horizontal"
-        android:gravity="center"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:orientation="horizontal">
+
         <Button
             android:id="@+id/btn_start"
-            android:text="开始"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:text="开始"/>
+
         <Button
             android:id="@+id/btn_pre"
-            android:text="上一步"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:text="上一步"/>
+
         <Button
             android:id="@+id/btn_next"
-            android:text="下一步"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:text="下一步"/>
+
+        <Button
+            android:id="@+id/btn_next_round"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="下一局"/>
     </LinearLayout>
 </RelativeLayout>
