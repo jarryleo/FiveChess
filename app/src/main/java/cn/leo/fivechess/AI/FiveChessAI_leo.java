@@ -29,9 +29,11 @@ public class FiveChessAI_leo implements AI_Interface {
         point.color = computerColor;
         int x1 = -1, y1 = -1;
         int x2 = -1, y2 = -1;
+        int x3 = -1, y3 = -1;
         int ownMax = 0; // 己方最大权重
         int oppositeMax = 0; // 对方最大权重
         int oppositeMin = 0; // 对方最小权重
+        int sumMax = 0;//双方合起来的权重
         for (int i = 0; i < chess.length; i++) {
             for (int j = 0; j < chess[i].length; j++) {
                 if (ownMax < ownWeight[i][j]) {
@@ -40,7 +42,7 @@ public class FiveChessAI_leo implements AI_Interface {
                     y1 = j;
                     Log.i("own", "AIGo: weight=" + ownMax + " x = " + x1 + " y = " + y1);
                 } else if (ownMax == ownWeight[i][j]) {
-                    if (Math.random() * 100 < 50) { //权重相同加点随机事件
+                    if (Math.random() * 100 > 50) { //权重相同加点随机事件
                         ownMax = ownWeight[i][j]; // 获取己方最大权重
                         x1 = i; // 获取坐标
                         y1 = j;
@@ -68,6 +70,18 @@ public class FiveChessAI_leo implements AI_Interface {
                 if (oppositeMin > oppositeWeight[i][j]) { //最小权重，负的，对面已有形式判断
                     oppositeMin = oppositeWeight[i][j];
                 }
+                if (sumMax < ownWeight[i][j] + oppositeWeight[i][j]) {  //两边总权重
+                    sumMax = ownWeight[i][j] + oppositeWeight[i][j];
+                    x3 = i;
+                    y3 = j;
+                } else if (sumMax == ownWeight[i][j] + oppositeWeight[i][j]) {
+                    if (Math.random() * 100 > 50) { //权重相同加点随机事件
+                        sumMax = ownWeight[i][j] + oppositeWeight[i][j];
+                        x3 = i;
+                        y3 = j;
+                    }
+
+                }
             }
         }
         //对方双线成杀，不拦截，全力冲四跳四
@@ -94,12 +108,9 @@ public class FiveChessAI_leo implements AI_Interface {
         } else if (oppositeMax == STEP_FOUR) { //对面将活四
             point.x = x2;
             point.y = y2;
-        } else if (oppositeMax > ownMax * 2) { //优先自己，除非对面高一倍
-            point.x = x2;
-            point.y = y2;
         } else {
-            point.x = x1;
-            point.y = y1;
+            point.x = x3;
+            point.y = y3;
         }
         return point;
     }
@@ -182,7 +193,7 @@ public class FiveChessAI_leo implements AI_Interface {
     private int singleLine(int x, int y, int color, int px, int py) {
         int leftLive = oneSide(x, y, color, px, py, 0); //左边生存空间
         int rightLive = oneSide(x, y, color, -px, -py, 0); //右边生存空间
-        if (leftLive + rightLive < 4) return 0;//左右生存空间少于4，此线无意义；
+        if (leftLive + rightLive < 4) return 1;//左右生存空间少于4，此线无意义；
         int leftSame = oneSide(x, y, color, px, py, 1); //左边相邻连续同色
         int rightSame = oneSide(x, y, color, -px, -py, 1); //右边相邻连续同色
         int leftNSame = oneSide(x, y, color, px, py, 2); //左边不相邻（1个空位）连续同色
@@ -190,7 +201,7 @@ public class FiveChessAI_leo implements AI_Interface {
         int life = isLife(leftLive, leftSame, rightLive, rightSame);
         int side = isSide(leftLive, leftSame, rightLive, rightSame);
         int jump = isJump(leftLive, leftSame, leftNSame, rightLive, rightSame, rightNSame);
-        return life * 1000 + side * 100 + jump;
+        return life * 1000 + side * 100 + jump; //千位为活子数，百位冲子数，十为标识各位的跳是否一边被拦
     }
 
     /*判断活几*/
@@ -215,25 +226,25 @@ public class FiveChessAI_leo implements AI_Interface {
         int sum = ls + rs + 1;
         int lj = sum + lns - ls;
         int rj = sum + rns - rs;
-        lj = lj == ls + 1 ? 0 : lj; //分开冲和跳
-        rj = rj == rs + 1 ? 0 : rj;
+        lj = lj == sum ? 0 : lj; //分开活,冲和跳
+        rj = rj == sum ? 0 : rj;
         int num = (lj > rj ? lj : rj);
-        if (num >= 4) return num;
-        if (num < 2) return 0;
+        if (num >= 4) return num; //跳四以上不考虑冲
+        if (num < 2) return 0; //跳2以下无意义
         int l_side = 0, r_side = 0;
         if ((lns + 1 >= ll) ^ (rl == rs)) {
-            l_side = 1;
+            l_side = 1;//左冲
         }
         if ((rns + 1 >= rl) ^ (ll == ls)) {
-            r_side = 1;
+            r_side = 1; //右冲
         }
         if (lj == num && l_side == 0) {
             return num;
         }
         if (rj == num && r_side == 0) {
-            return num;
+            return num;//活跳
         }
-        return 10 + num;
+        return 10 + num;//冲跳，十位标识冲
     }
 
     /*单线参数获取*/

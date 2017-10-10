@@ -318,6 +318,10 @@ public class ChessBoard extends View {
         lastX = x;
         lastY = y;
         lastColor = color;
+        if ((mIndex >= 225 && mChessDownLister != null) || x < 0 || y < 0) {
+            mChessDownLister.onGameOver(0); //和棋
+            return false;
+        }
         mChess[x][y].index = mIndex;
         mChess[x][y].color = color;
         mChess[x][y].x = x;
@@ -332,10 +336,6 @@ public class ChessBoard extends View {
             mChessDownLister.onGameOver(lastColor);
             return false;
         }
-        if (mIndex == 225 && mChessDownLister != null) {
-            mChessDownLister.onGameOver(0); //和棋
-        }
-
         return true;
     }
 

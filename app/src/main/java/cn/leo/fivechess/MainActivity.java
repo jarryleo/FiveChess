@@ -241,8 +241,8 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
             case R.id.btn_start:
                 auto = !auto;
                 ((TextView) v).setText(auto ? "暂停" : "开始");
-                turn = 5 - turn;
                 mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 1).sendToTarget();
+                turn = 5 - turn;
                 break;
             case R.id.btn_pre:
                 mBoard.back();
