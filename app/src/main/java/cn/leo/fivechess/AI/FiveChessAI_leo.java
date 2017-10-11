@@ -1,5 +1,7 @@
 package cn.leo.fivechess.AI;
 
+import android.util.Log;
+
 import cn.leo.fivechess.bean.Chess;
 
 public class FiveChessAI_leo implements AI_Interface {
@@ -40,11 +42,13 @@ public class FiveChessAI_leo implements AI_Interface {
                     ownMax = ownWeight[i][j]; // 获取己方最大权重
                     x1 = i; // 获取坐标
                     y1 = j;
+                    Log.e("own", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
                 } else if (ownMax == ownWeight[i][j]) {
                     if (Math.random() * 100 > 50) { //权重相同加点随机事件
                         ownMax = ownWeight[i][j]; // 获取己方最大权重
                         x1 = i; // 获取坐标
                         y1 = j;
+                        Log.e("own", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
                     }
                 }
                 //己方已经四连，直接落子
@@ -58,11 +62,13 @@ public class FiveChessAI_leo implements AI_Interface {
                     oppositeMax = oppositeWeight[i][j]; // 获取对方最大权重
                     x2 = i; // 获取坐标
                     y2 = j;
+                    Log.e("opposite", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
                 } else if (oppositeMax == oppositeWeight[i][j]) {
                     if (Math.random() * 100 > 50) { //权重相同加点随机事件
                         oppositeMax = oppositeWeight[i][j]; // 获取对方最大权重
                         x2 = i; // 获取坐标
                         y2 = j;
+                        Log.e("opposite", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
                     }
                 }
                 //最小权重，负的，对面已经有的形式判断
@@ -83,6 +89,7 @@ public class FiveChessAI_leo implements AI_Interface {
                 }
             }
         }
+        /*开始根据权重分析形势*/
         //对方已经双线成杀，不拦截，全力冲四跳四
         if (oppositeMin == -STEP_SLAY) {
             for (int i = 0; i < chess.length; i++) {
@@ -102,31 +109,23 @@ public class FiveChessAI_leo implements AI_Interface {
             point.y = y2;
             return point;
         }
-        //己方将要双线成杀
-        if (ownMax == STEP_SLAY) {
+        //己方将要双线成杀 或 将活四
+        if (ownMax == STEP_SLAY ||
+                ownMax == STEP_FOUR) {
             point.x = x1;
             point.y = y1;
             return point;
         }
-        //对方将要双线成杀
-        if (oppositeMax == STEP_SLAY) {
+        //对面将活四 或 将双线成杀
+        if (oppositeMax == STEP_FOUR ||
+                oppositeMax == STEP_SLAY) {
             point.x = x2;
             point.y = y2;
             return point;
         }
-        //自己将活四
-        if (ownMax == STEP_FOUR) {
-            point.x = x1;
-            point.y = y1;
-            //对面将活四
-        } else if (oppositeMax == STEP_FOUR) {
-            point.x = x2;
-            point.y = y2;
-            //剩下走双方权重相合最大的点
-        } else {
-            point.x = x3;
-            point.y = y3;
-        }
+        //剩下走双方权重相合最大的点
+        point.x = x3;
+        point.y = y3;
         return point;
     }
 
@@ -139,14 +138,14 @@ public class FiveChessAI_leo implements AI_Interface {
     private void calculateWeight() {
         for (int i = 0; i < chess.length; i++) {
             for (int j = 0; j < chess[i].length; j++) {
-                ownWeight[i][j] = weightSum(i, j, computerColor);
-                oppositeWeight[i][j] = weightSum(i, j, 3 - computerColor);
+                ownWeight[i][j] = weightSum(i, j, computerColor, true);
+                oppositeWeight[i][j] = weightSum(i, j, 3 - computerColor, true);
             }
         }
     }
 
     /*分析一个点所能形成的局势，用权重表示*/
-    private int weightSum(int x, int y, int color) {
+    private int weightSum(int x, int y, int color, boolean ignoreFour) {
         int weight = 0; // 总权重
         // 如果坐标处有子，则没有权重,如果是对面权重计算需要判断已有局面
         if ((chess[x][y].color > 0 && color == computerColor)
@@ -159,56 +158,59 @@ public class FiveChessAI_leo implements AI_Interface {
         line[1] = singleLine(x, y, color, 0, 1);
         line[2] = singleLine(x, y, color, 1, 1);
         line[3] = singleLine(x, y, color, -1, 1);
-        int doubleLine = 0;
-        int four = 0;
+        int doubleLine = 0; //成双线杀的条件，大于等于2表示成杀
+        int four = 0;//活四及以上或跳四及以上个数
+        int op = (chess[x][y].color > 0 && color != computerColor) ? -1 : 1;//已有子的坐标系数为-1
         for (int i = 0; i < line.length; i++) {
             int life = line[i] / 1000;
             int side = line[i] / 100 % 10;
             int jump = line[i] % 100;
+            //活5
             if (life > 4) {
-                weight = STEP_KILL; //活5
-                if (life == side || life == jump % 10) {
-                    weight = STEP_DANGER; //冲5或跳5
+                weight = STEP_KILL;
+                //冲5或跳5
+                if (side > 4 || jump % 10 > 4) {
+                    weight = STEP_DANGER;
                 }
-                return weight * ((chess[x][y].color > 0 &&
-                        color != computerColor) ? -1 : 1);
+                return weight * op;
             }
-            if (life == 4) { //活4
+            //活4
+            if (life == 4) {
                 weight = STEP_FOUR;
-                return weight * ((chess[x][y].color > 0 &&
-                        color != computerColor) ? -1 : 1);
+                return weight * op;
             }
             //活三，冲四 ，跳四及以上，活跳三
             if (life == 3 || side == 4 || jump % 10 >= 4 ||
                     (jump / 10 == 0 && jump % 10 == 3)) {
-                doubleLine++;
-                if (jump % 10 == 3) {
-                    weight += 9000;
+                doubleLine++; //满足双杀条件
+                if (jump % 10 >= 3) { //跳权重少点
+                    weight += 8000;
                 } else {
                     weight += 10000;
                 }
-                if (side == 4 || jump % 10 >= 4) {
+                //冲四跳四
+                if (side >= 4 || jump % 10 >= 4) {
                     four++;
                 }
                 //活二，冲三，冲跳三
             } else if (life == 2 || side == 3 || jump % 10 == 3) {
                 weight += 1000;
-                //余下
+                //余下权重计算
             } else {
                 weight = weight + life * 100 + side * 100 +
                         (jump % 10) * 10 - (jump / 10);
+                //中心点权重加100，AI开局就不会乱走
                 if (x == 7 && y == 7) {
-                    weight += 100; //中心点权重加100，AI开局就不会乱走
+                    weight += 100;
                 }
             }
         }
-        if (doubleLine > 1) { //双线成杀
-            weight = STEP_SLAY;
-        } else if (doubleLine == 1 && four > 0) { // 冲四或跳四
-            weight = STEP_AT_FOUR;
+        if (doubleLine > 1) {
+            weight = STEP_SLAY;//双线成杀
+        } else if (doubleLine == 1 && four > 0 && ignoreFour) {
+            weight = STEP_AT_FOUR;// 冲四或跳四
         }
-        return weight * ((chess[x][y].color > 0 &&
-                color != computerColor) ? -1 : 1);
+        return weight * op;
     }
 
     /*单线权重计算*/
