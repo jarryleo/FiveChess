@@ -19,11 +19,13 @@ public class FiveChessAI_leo implements AI_Interface {
     private int ownWeight[][] = new int[15][15]; // 己方每个点权重
     private int oppositeWeight[][] = new int[15][15]; // 对方每个点权重
     private int computerColor; // 电脑要走的棋子颜色 黑1 或 白2 ,0为空
+    private int chessCount;
 
     @Override
     public Chess AIGo(Chess chess[][], int color) { // 返回计算机落子
         this.chess = chess;
         this.computerColor = color;
+        this.chessCount = 0;
         calculateWeight(); // 计算权重
         Chess point = new Chess(); // 定义返回的对象
         point.color = computerColor; //返回的颜色必然是自己要走的颜色
@@ -148,9 +150,12 @@ public class FiveChessAI_leo implements AI_Interface {
     private int weightSum(int x, int y, int color, boolean ignoreFour) {
         int weight = 0; // 总权重
         // 如果坐标处有子，则没有权重,如果是对面权重计算需要判断已有局面
-        if ((chess[x][y].color > 0 && color == computerColor)
-                || chess[x][y].color == computerColor) {
-            return -1;
+        if (chess[x][y].color > 0) {
+            chessCount++;
+            if (color == computerColor ||
+                    chess[x][y].color == computerColor) {
+                return -1;
+            }
         }
         /*获取 横竖 阳线，左斜线 右斜线 阴线 四线权重*/
         int[] line = new int[4];
@@ -160,7 +165,7 @@ public class FiveChessAI_leo implements AI_Interface {
         line[3] = singleLine(x, y, color, -1, 1);
         int doubleLine = 0; //成双线杀的条件，大于等于2表示成杀
         int four = 0;//活四及以上或跳四及以上个数
-        int op = (chess[x][y].color > 0 && color != computerColor) ? -1 : 1;//已有子的坐标系数为-1
+        int op = chess[x][y].color > 0 ? -1 : 1;//已有子的坐标系数为-1
         for (int i = 0; i < line.length; i++) {
             int life = line[i] / 1000;
             int side = line[i] / 100 % 10;
