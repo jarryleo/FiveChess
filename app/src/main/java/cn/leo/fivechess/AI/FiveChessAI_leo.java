@@ -2,6 +2,8 @@ package cn.leo.fivechess.AI;
 
 import android.util.Log;
 
+import java.util.Arrays;
+
 import cn.leo.fivechess.bean.Chess;
 
 public class FiveChessAI_leo implements AI_Interface {
@@ -15,11 +17,24 @@ public class FiveChessAI_leo implements AI_Interface {
      *
      * @author 刘佳睿
      */
-    Chess chess[][];// = new Chess[15][15]; // 接受棋盘的所有棋子
+    Chess chess[][]; // 接受棋盘的所有棋子
     private int ownWeight[][] = new int[15][15]; // 己方每个点权重
     private int oppositeWeight[][] = new int[15][15]; // 对方每个点权重
     private int computerColor; // 电脑要走的棋子颜色 黑1 或 白2 ,0为空
     private int chessCount;
+    private boolean isSon;
+    private FiveChessAI_leo son_A, son_B;
+
+    /*创建2个自己的副本，用于自我对弈*/
+    public FiveChessAI_leo() {
+        son_A = new FiveChessAI_leo(true);
+        son_B = new FiveChessAI_leo(true);
+    }
+
+    /*自己的副本构造*/
+    private FiveChessAI_leo(boolean isSon) {
+        this.isSon = isSon;
+    }
 
     @Override
     public Chess AIGo(Chess chess[][], int color) { // 返回计算机落子
@@ -29,6 +44,8 @@ public class FiveChessAI_leo implements AI_Interface {
         calculateWeight(); // 计算权重
         Chess point = new Chess(); // 定义返回的对象
         point.color = computerColor; //返回的颜色必然是自己要走的颜色
+        point.x = -1;
+        point.y = -1;
         int x1 = -1, y1 = -1; //己方最大权重记录坐标
         int x2 = -1, y2 = -1; //对方最大权重记录坐标
         int x3 = -1, y3 = -1; //双方权重合值最大记录坐标
@@ -57,6 +74,7 @@ public class FiveChessAI_leo implements AI_Interface {
                 if (ownMax == STEP_KILL || ownMax == STEP_DANGER) {
                     point.x = x1;
                     point.y = y1;
+                    point.index = ownMax;
                     return point;
                 }
                 /*处理对方权重*/
@@ -91,6 +109,7 @@ public class FiveChessAI_leo implements AI_Interface {
                 }
             }
         }
+        if (ownMax < 10 && oppositeMax < 10) return point;//和棋
         /*开始根据权重分析形势*/
         //对方已经双线成杀，不拦截，全力冲四跳四
         if (oppositeMin == -STEP_SLAY) {
@@ -100,6 +119,7 @@ public class FiveChessAI_leo implements AI_Interface {
                             ownWeight[i][j] == STEP_FOUR) {
                         point.x = i;
                         point.y = j;
+                        point.index = ownWeight[i][j];
                         return point;
                     }
                 }
@@ -109,6 +129,7 @@ public class FiveChessAI_leo implements AI_Interface {
         if (oppositeMax == STEP_DANGER) {
             point.x = x2;
             point.y = y2;
+            point.index = oppositeMax;
             return point;
         }
         //己方将要双线成杀 或 将活四
@@ -116,6 +137,7 @@ public class FiveChessAI_leo implements AI_Interface {
                 ownMax == STEP_FOUR) {
             point.x = x1;
             point.y = y1;
+            point.index = ownMax;
             return point;
         }
         //对面将活四 或 将双线成杀
@@ -123,11 +145,20 @@ public class FiveChessAI_leo implements AI_Interface {
                 oppositeMax == STEP_SLAY) {
             point.x = x2;
             point.y = y2;
+            point.index = oppositeMax;
             return point;
+        }
+        //如果不是自己的副本,且下子总数已达到5个，则开始自我模拟对弈
+        if (!isSon && chessCount > 5) {
+            Chess[][] chessCopy = Arrays.copyOf(chess, 225);//拷贝棋局，用来模拟对弈
+            //1、找出自己权重最大的几个点 TODO
+            //2、模拟下子找出每个点的胜率
+            //3、选择胜率最大的点传给父类
         }
         //剩下走双方权重相合最大的点
         point.x = x3;
         point.y = y3;
+        point.index = sumMax;
         return point;
     }
 
