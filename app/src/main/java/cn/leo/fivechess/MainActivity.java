@@ -259,11 +259,12 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
                 break;
             case R.id.btn_next:
                 //mBoard.next();
-                if (isGameOver)return;
+                if (isGameOver) return;
                 mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 1).sendToTarget();
                 turn = 5 - turn;
                 break;
             case R.id.btn_next_round:
+                isGameOver = false;
                 initData();
 //                mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 0).sendToTarget();
 //                turn = 5 - turn;
