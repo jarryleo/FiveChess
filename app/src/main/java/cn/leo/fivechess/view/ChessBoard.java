@@ -192,8 +192,10 @@ public class ChessBoard extends View {
                     //落子
                     int x = (int) ((event.getX() + 0.5 * mDistance) / mDistance) - 1;
                     int y = (int) ((event.getY() + 0.5 * mDistance) / mDistance) - 1;
-                    if (mChessDownLister != null && !lock && mChess[x][y].color < 1) {
-                        mChessDownLister.onChessDown(x, y);
+                    if (x >= 0 && x < 15 && y >= 0 && y < 15) {
+                        if (mChessDownLister != null && !lock && mChess[x][y].color < 1) {
+                            mChessDownLister.onChessDown(x, y);
+                        }
                     }
                 }
                 mScroll = false;
