@@ -88,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     }
 
     private void initData() {
+        freshScore();
         mBoard.startGame();
         if (mode == CHESS_MODE_AI_VS_AI) {
             mBoard.setLock(true);
@@ -168,8 +169,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
             } else if (winColor == 3 - humanColor) {
                 score_b++;
             }
-            mTv_score_a.setText("(" + (humanColor == CHESS_COLOR_BLACK ? "黑" : "白") + ")人类：" + score_a);
-            mTv_score_b.setText("(" + (humanColor == CHESS_COLOR_BLACK ? "白" : "黑") + ")AI：" + score_b);
+            freshScore();
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(winColor == humanColor ? "你赢了" : "你输了");
             builder.setMessage(winColor == humanColor ? "恭喜，你赢了!" : "别气馁，加把劲!");
@@ -196,16 +196,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
                     score_a++;
                 }
             }
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mTv_score_a.setText("(" + (firstSide == FIRST_GO_AI_A ? "黑" : "白") + ")"
-                            + mAI_A.getAIName() + ":" + score_a);
-                    mTv_score_b.setText("(" + (firstSide == FIRST_GO_AI_B ? "黑" : "白") + ")"
-                            + mAI_B.getAIName() + ":" + score_b);
-                }
-            });
-
+            freshScore();
             if (count < 10000) { //下10000局
                 if (firstSide == FIRST_GO_AI_A) { //交换先手
                     firstSide = FIRST_GO_AI_B;
@@ -223,10 +214,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
             } else if (winColor == CHESS_COLOR_WHITE) {
                 score_b++;
             }
-
-            mTv_score_a.setText("黑方：" + score_a);
-            mTv_score_b.setText("白方：" + score_b);
-
+            freshScore();
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(winColor == CHESS_COLOR_BLACK ? "黑子胜" : "白子胜");
             builder.setMessage(winColor == CHESS_COLOR_BLACK ? "黑子胜" : "白子胜");
@@ -239,6 +227,26 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
             builder.setCancelable(false);
             builder.show();
         }
+    }
+
+    private void freshScore() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mode == CHESS_MODE_HUMAN_VS_AI) { //人机
+                    mTv_score_a.setText("(" + (humanColor == CHESS_COLOR_BLACK ? "黑" : "白") + ")人类：" + score_a);
+                    mTv_score_b.setText("(" + (humanColor == CHESS_COLOR_BLACK ? "白" : "黑") + ")AI：" + score_b);
+                } else if (mode == CHESS_MODE_AI_VS_AI) { //AI  VS  AI
+                    mTv_score_a.setText("(" + (firstSide == FIRST_GO_AI_A ? "黑" : "白") + ")"
+                            + mAI_A.getAIName() + ":" + score_a);
+                    mTv_score_b.setText("(" + (firstSide == FIRST_GO_AI_B ? "黑" : "白") + ")"
+                            + mAI_B.getAIName() + ":" + score_b);
+                } else if (mode == CHESS_MODE_HUMAN_VS_HUMAN) {//人类 对 人类
+                    mTv_score_a.setText("黑方：" + score_a);
+                    mTv_score_b.setText("白方：" + score_b);
+                }
+            }
+        });
     }
 
     @Override
@@ -258,7 +266,8 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
                 turn = 5 - turn;
                 break;
             case R.id.btn_next:
-                //mBoard.next();
+//                boolean next = mBoard.next();
+//                if (next) return;
                 if (isGameOver) return;
                 mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 1).sendToTarget();
                 turn = 5 - turn;

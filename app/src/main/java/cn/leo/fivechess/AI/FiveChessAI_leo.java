@@ -169,7 +169,7 @@ public class FiveChessAI_leo implements AI_Interface {
                             if (chess1.x < 0 || chess1.y < 0) {
                                 //A认为和棋
                                 break;
-                            } else if (chess1.index == STEP_AT_FOUR || chess1.index == STEP_DANGER) {
+                            } else if (chess1.index == STEP_KILL || chess1.index == STEP_DANGER) {
                                 //A赢了
                                 ownWeight[i][j] -= chess1.index;
                                 Log.w("模拟对弈败局", "AIGo: X=" + i + ",Y=" + j);
@@ -182,7 +182,7 @@ public class FiveChessAI_leo implements AI_Interface {
                             if (chess2.x < 0 || chess2.y < 0) {
                                 //B认为和棋
                                 break;
-                            } else if (chess2.index == STEP_AT_FOUR || chess2.index == STEP_DANGER) {
+                            } else if (chess2.index == STEP_KILL || chess2.index == STEP_DANGER) {
                                 //B赢了
                                 //3、选择胜率最大的点传给父类
                                 ownWeight[i][j] += chess2.index;

@@ -284,10 +284,10 @@ public class ChessBoard extends View {
     }
 
     /*撤销悔棋*/
-    public void next() {
+    public boolean next() {
         int i = steps.get(mIndex + 1, -1);//取出最后落子位置
         if (i == -1) {
-            return;
+            return false;
         }
         mIndex++;
         lastColor = 3 - lastColor;
@@ -295,6 +295,7 @@ public class ChessBoard extends View {
         int y = i / mLines;
         mChess[x][y].color = lastColor;
         refreshUI();
+        return true;
     }
 
     /*刷新UI*/
