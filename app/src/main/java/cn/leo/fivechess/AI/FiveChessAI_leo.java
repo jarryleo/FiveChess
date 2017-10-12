@@ -2,8 +2,6 @@ package cn.leo.fivechess.AI;
 
 import android.util.Log;
 
-import java.util.Arrays;
-
 import cn.leo.fivechess.bean.Chess;
 
 public class FiveChessAI_leo implements AI_Interface {
@@ -61,13 +59,13 @@ public class FiveChessAI_leo implements AI_Interface {
                     ownMax = ownWeight[i][j]; // 获取己方最大权重
                     x1 = i; // 获取坐标
                     y1 = j;
-                    Log.e("own", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
+//                    if (!isSon) Log.e("own", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
                 } else if (ownMax == ownWeight[i][j]) {
                     if (Math.random() * 100 > 50) { //权重相同加点随机事件
                         ownMax = ownWeight[i][j]; // 获取己方最大权重
                         x1 = i; // 获取坐标
                         y1 = j;
-                        Log.e("own", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
+//                        if (!isSon) Log.e("own", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
                     }
                 }
                 //己方已经四连，直接落子
@@ -82,13 +80,14 @@ public class FiveChessAI_leo implements AI_Interface {
                     oppositeMax = oppositeWeight[i][j]; // 获取对方最大权重
                     x2 = i; // 获取坐标
                     y2 = j;
-                    Log.e("opposite", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
+//                    if (!isSon) Log.e("opposite", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
                 } else if (oppositeMax == oppositeWeight[i][j]) {
                     if (Math.random() * 100 > 50) { //权重相同加点随机事件
                         oppositeMax = oppositeWeight[i][j]; // 获取对方最大权重
                         x2 = i; // 获取坐标
                         y2 = j;
-                        Log.e("opposite", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
+//                        if (!isSon)
+//                            Log.e("opposite", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
                     }
                 }
                 //最小权重，负的，对面已经有的形式判断
@@ -150,10 +149,63 @@ public class FiveChessAI_leo implements AI_Interface {
         }
         //如果不是自己的副本,且下子总数已达到5个，则开始自我模拟对弈
         if (!isSon && chessCount > 5) {
-            Chess[][] chessCopy = Arrays.copyOf(chess, 225);//拷贝棋局，用来模拟对弈
-            //1、找出自己权重最大的几个点 TODO
-            //2、模拟下子找出每个点的胜率
-            //3、选择胜率最大的点传给父类
+            //拷贝棋局，用来模拟对弈
+            Chess[][] chessCopy = new Chess[15][15];
+            for (int i = 0; i < chess.length; i++) {
+                for (int j = 0; j < chess[i].length; j++) {
+                    chessCopy[i][j] = chess[i][j].clone();
+                }
+            }
+            //1、找出自己权重需要模拟对弈的几个点
+            for (int i = 0; i < chess.length; i++) {
+                for (int j = 0; j < chess[i].length; j++) {
+                    if (ownWeight[i][j] + oppositeWeight[i][j] > 10000) {
+                        //2、模拟下子找出每个点的胜率
+                        chessCopy[i][j].color = computerColor;//模拟落子
+                        for (int k = chessCount + 1; k < 225; k++) {
+                            Chess chess1 = son_A.AIGo(chessCopy, 3 - computerColor);//A副本走对方棋子
+                            if (chess1.x < 0 || chess1.y < 0) {
+                                //A认为和棋
+                                break;
+                            } else if (chess1.index == STEP_AT_FOUR || chess1.index == STEP_DANGER) {
+                                //A赢了
+                                ownWeight[i][j] -= chess1.index;
+                                Log.w("模拟对弈败局", "AIGo: X=" + i + ",Y=" + j);
+                                break;
+                            } else {
+                                //A走的子在模拟棋盘落子
+                                chessCopy[chess1.x][chess1.y].color = chess1.color;
+                            }
+                            Chess chess2 = son_B.AIGo(chessCopy, computerColor);//B副本走电脑的棋
+                            if (chess2.x < 0 || chess2.y < 0) {
+                                //B认为和棋
+                                break;
+                            } else if (chess2.index == STEP_AT_FOUR || chess2.index == STEP_DANGER) {
+                                //B赢了
+                                //3、选择胜率最大的点传给父类
+                                ownWeight[i][j] += chess2.index;
+                                Log.w("模拟对弈发现胜局", "AIGo: X=" + i + ",Y=" + j);
+                                break;
+                            } else {
+                                //B走的子在模拟棋盘落子
+                                chessCopy[chess2.x][chess2.y].color = chess2.color;
+                            }
+                        }
+                    }
+                    /*处理双方权重相加*/
+                    if (sumMax < ownWeight[i][j] + oppositeWeight[i][j]) {  //两边总权重
+                        sumMax = ownWeight[i][j] + oppositeWeight[i][j];
+                        x3 = i;
+                        y3 = j;
+                    } else if (sumMax == ownWeight[i][j] + oppositeWeight[i][j]) {
+                        if (Math.random() * 100 > 50) { //权重相同加点随机事件
+                            sumMax = ownWeight[i][j] + oppositeWeight[i][j];
+                            x3 = i;
+                            y3 = j;
+                        }
+                    }
+                }
+            }
         }
         //剩下走双方权重相合最大的点
         point.x = x3;
@@ -182,7 +234,7 @@ public class FiveChessAI_leo implements AI_Interface {
         int weight = 0; // 总权重
         // 如果坐标处有子，则没有权重,如果是对面权重计算需要判断已有局面
         if (chess[x][y].color > 0) {
-            chessCount++;
+            if (color == computerColor) chessCount++;
             if (color == computerColor ||
                     chess[x][y].color == computerColor) {
                 return -1;
