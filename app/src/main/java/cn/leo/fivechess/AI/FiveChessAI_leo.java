@@ -1,8 +1,8 @@
 package cn.leo.fivechess.AI;
 
-import android.util.Log;
 
 import cn.leo.fivechess.bean.Chess;
+import cn.leo.fivechess.utils.Logger;
 
 public class FiveChessAI_leo implements AI_Interface {
     private static final int STEP_KILL = 99999;
@@ -59,13 +59,13 @@ public class FiveChessAI_leo implements AI_Interface {
                     ownMax = ownWeight[i][j]; // 获取己方最大权重
                     x1 = i; // 获取坐标
                     y1 = j;
-//                    if (!isSon) Log.e("own", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
+//                    if (!isSon) Logger.e("own", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
                 } else if (ownMax == ownWeight[i][j]) {
                     if (Math.random() * 100 > 50) { //权重相同加点随机事件
                         ownMax = ownWeight[i][j]; // 获取己方最大权重
                         x1 = i; // 获取坐标
                         y1 = j;
-//                        if (!isSon) Log.e("own", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
+//                        if (!isSon) Logger.e("own", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
                     }
                 }
                 //己方已经四连，直接落子
@@ -80,14 +80,14 @@ public class FiveChessAI_leo implements AI_Interface {
                     oppositeMax = oppositeWeight[i][j]; // 获取对方最大权重
                     x2 = i; // 获取坐标
                     y2 = j;
-//                    if (!isSon) Log.e("opposite", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
+//                    if (!isSon) Logger.e("opposite", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
                 } else if (oppositeMax == oppositeWeight[i][j]) {
                     if (Math.random() * 100 > 50) { //权重相同加点随机事件
                         oppositeMax = oppositeWeight[i][j]; // 获取对方最大权重
                         x2 = i; // 获取坐标
                         y2 = j;
 //                        if (!isSon)
-//                            Log.e("opposite", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
+//                            Logger.e("opposite", "AIGo: weight=" + ownMax + ",X=" + i + ",Y=" + j);
                     }
                 }
                 //最小权重，负的，对面已经有的形式判断
@@ -124,14 +124,14 @@ public class FiveChessAI_leo implements AI_Interface {
                 }
             }
         }
+        //对方将要5连但是可以拦截
+        if (oppositeMax == STEP_DANGER) {
+            point.x = x2;
+            point.y = y2;
+            point.index = oppositeMax;
+            return point;
+        }
         if (isSon) {
-            //对方将要5连但是可以拦截
-            if (oppositeMax == STEP_DANGER) {
-                point.x = x2;
-                point.y = y2;
-                point.index = oppositeMax;
-                return point;
-            }
             //己方将要双线成杀 或 将活四
             if (ownMax == STEP_SLAY ||
                     ownMax == STEP_FOUR) {
@@ -172,7 +172,7 @@ public class FiveChessAI_leo implements AI_Interface {
                             } else if (chess1.index == STEP_KILL || chess1.index == STEP_DANGER) {
                                 //A赢了
                                 ownWeight[i][j] -= chess1.index;
-                                Log.w("模拟对弈败局", "AIGo: X=" + i + ",Y=" + j);
+                                Logger.w("模拟对弈败局", "AIGo: X=" + i + ",Y=" + j);
                                 break;
                             } else {
                                 //A走的子在模拟棋盘落子
@@ -186,7 +186,7 @@ public class FiveChessAI_leo implements AI_Interface {
                                 //B赢了
                                 //3、选择胜率最大的点传给父类
                                 ownWeight[i][j] += chess2.index;
-                                Log.w("模拟对弈发现胜局", "AIGo: X=" + i + ",Y=" + j);
+                                Logger.w("模拟对弈发现胜局", "AIGo: X=" + i + ",Y=" + j);
                                 break;
                             } else {
                                 //B走的子在模拟棋盘落子
