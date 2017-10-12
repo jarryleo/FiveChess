@@ -128,7 +128,7 @@ public class FiveChessAI_leo implements AI_Interface {
         if (oppositeMax == STEP_DANGER) {
             point.x = x2;
             point.y = y2;
-            point.index = oppositeMax;
+            point.index = -oppositeMax;
             return point;
         }
         if (isSon) {
@@ -145,7 +145,7 @@ public class FiveChessAI_leo implements AI_Interface {
                     oppositeMax == STEP_SLAY) {
                 point.x = x2;
                 point.y = y2;
-                point.index = oppositeMax;
+                point.index = -oppositeMax;
                 return point;
             }
         }
