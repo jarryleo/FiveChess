@@ -114,6 +114,7 @@ public class FiveChessAI_leo implements AI_Interface {
         if (oppositeMin == -STEP_SLAY) {
             for (int i = 0; i < chess.length; i++) {
                 for (int j = 0; j < chess[i].length; j++) {
+                    ownWeight[i][j] = weightSum(i, j, computerColor, true);
                     if (ownWeight[i][j] == STEP_AT_FOUR ||
                             ownWeight[i][j] == STEP_FOUR) {
                         point.x = i;
@@ -225,8 +226,8 @@ public class FiveChessAI_leo implements AI_Interface {
     private void calculateWeight() {
         for (int i = 0; i < chess.length; i++) {
             for (int j = 0; j < chess[i].length; j++) {
-                ownWeight[i][j] = weightSum(i, j, computerColor, true);
-                oppositeWeight[i][j] = weightSum(i, j, 3 - computerColor, true);
+                ownWeight[i][j] = weightSum(i, j, computerColor, false);
+                oppositeWeight[i][j] = weightSum(i, j, 3 - computerColor, false);
             }
         }
     }
