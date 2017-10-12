@@ -149,16 +149,17 @@ public class FiveChessAI_leo implements AI_Interface {
         }
         //如果不是自己的副本,且下子总数已达到5个，则开始自我模拟对弈
         if (!isSon && chessCount > 5) {
-            //拷贝棋局，用来模拟对弈
-            Chess[][] chessCopy = new Chess[15][15];
-            for (int i = 0; i < chess.length; i++) {
-                for (int j = 0; j < chess[i].length; j++) {
-                    chessCopy[i][j] = chess[i][j].clone();
-                }
-            }
+
             //1、找出自己权重需要模拟对弈的几个点
             for (int i = 0; i < chess.length; i++) {
                 for (int j = 0; j < chess[i].length; j++) {
+                    //拷贝棋局，用来模拟对弈
+                    Chess[][] chessCopy = new Chess[15][15];
+                    for (int e = 0; e < chess.length; e++) {
+                        for (int r = 0; r < chess[e].length; r++) {
+                            chessCopy[e][r] = chess[e][r].clone();
+                        }
+                    }
                     if (ownWeight[i][j] + oppositeWeight[i][j] > 10000) {
                         //2、模拟下子找出每个点的胜率
                         chessCopy[i][j].color = computerColor;//模拟落子
