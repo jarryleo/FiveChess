@@ -124,32 +124,33 @@ public class FiveChessAI_leo implements AI_Interface {
                 }
             }
         }
-        //对方将要5连但是可以拦截
-        if (oppositeMax == STEP_DANGER) {
-            point.x = x2;
-            point.y = y2;
-            point.index = oppositeMax;
-            return point;
-        }
-        //己方将要双线成杀 或 将活四
-        if (ownMax == STEP_SLAY ||
-                ownMax == STEP_FOUR) {
-            point.x = x1;
-            point.y = y1;
-            point.index = ownMax;
-            return point;
-        }
-        //对面将活四 或 将双线成杀
-        if (oppositeMax == STEP_FOUR ||
-                oppositeMax == STEP_SLAY) {
-            point.x = x2;
-            point.y = y2;
-            point.index = oppositeMax;
-            return point;
+        if (isSon) {
+            //对方将要5连但是可以拦截
+            if (oppositeMax == STEP_DANGER) {
+                point.x = x2;
+                point.y = y2;
+                point.index = oppositeMax;
+                return point;
+            }
+            //己方将要双线成杀 或 将活四
+            if (ownMax == STEP_SLAY ||
+                    ownMax == STEP_FOUR) {
+                point.x = x1;
+                point.y = y1;
+                point.index = ownMax;
+                return point;
+            }
+            //对面将活四 或 将双线成杀
+            if (oppositeMax == STEP_FOUR ||
+                    oppositeMax == STEP_SLAY) {
+                point.x = x2;
+                point.y = y2;
+                point.index = oppositeMax;
+                return point;
+            }
         }
         //如果不是自己的副本,且下子总数已达到5个，则开始自我模拟对弈
         if (!isSon && chessCount > 5) {
-
             //1、找出自己权重需要模拟对弈的几个点
             for (int i = 0; i < chess.length; i++) {
                 for (int j = 0; j < chess[i].length; j++) {

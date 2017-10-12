@@ -40,11 +40,11 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     //    private AI_Interface mAI_B = new FiveChessAI_demo(); //TODO 初级引擎
     private AI_Interface mAI_B = new FiveChessAI_lsw();//TODO AI引擎2
     /*人机模式*/
-    private int mode = CHESS_MODE_HUMAN_VS_AI; //TODO 设置下棋模式 、改成人机模式自动对战10000次，计算最终比分
-    private int firstSide = FIRST_GO_HUMAN;//上面没有human，这里就不能写human
+//    private int mode = CHESS_MODE_HUMAN_VS_AI; //TODO 设置下棋模式 、改成人机模式自动对战10000次，计算最终比分
+//    private int firstSide = FIRST_GO_HUMAN;//上面没有human，这里就不能写human
     /*AI对战*/
-//    private int mode = CHESS_MODE_AI_VS_AI;
-//    private int firstSide = FIRST_GO_AI_A;
+    private int mode = CHESS_MODE_AI_VS_AI;
+    private int firstSide = FIRST_GO_AI_A;
     private boolean auto = false;//自动
     private int turn = firstSide;//轮换
 
@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     private void initData() {
         mBoard.startGame();
         if (mode == CHESS_MODE_AI_VS_AI) {
+            mBoard.setLock(true);
             AIFight();
         } else if (mode == CHESS_MODE_HUMAN_VS_AI) {//人机模式
             if (firstSide == FIRST_GO_AI_A) { //如果机器先走
@@ -158,7 +159,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     @Override
     public void onGameOver(int winColor) {
         if (winColor == 0) {
-            Toast.makeText(this, "和棋", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "和棋！", Toast.LENGTH_SHORT).show();
         }
         count++;
         if (mode == CHESS_MODE_HUMAN_VS_AI) { //人机
@@ -213,7 +214,8 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
                 }
                 turn = firstSide;//轮换
                 mBoard.refreshUI();
-                initData();
+                isGameOver = true;
+                //initData();
             }
         } else if (mode == CHESS_MODE_HUMAN_VS_HUMAN) {//人类 对 人类
             if (winColor == CHESS_COLOR_BLACK) {
@@ -244,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
         int id = v.getId();
         switch (id) {
             case R.id.btn_start:
-                initData();
+                mBoard.startGame();
                 auto = !auto;
                 ((TextView) v).setText(auto ? "暂停" : "开始");
                 mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 0).sendToTarget();
@@ -257,13 +259,14 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
                 break;
             case R.id.btn_next:
                 //mBoard.next();
+                if (isGameOver)return;
                 mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 1).sendToTarget();
                 turn = 5 - turn;
                 break;
             case R.id.btn_next_round:
                 initData();
-                mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 0).sendToTarget();
-                turn = 5 - turn;
+//                mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 0).sendToTarget();
+//                turn = 5 - turn;
                 break;
         }
     }

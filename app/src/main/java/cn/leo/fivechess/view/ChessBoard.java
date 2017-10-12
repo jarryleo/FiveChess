@@ -270,6 +270,7 @@ public class ChessBoard extends View {
 
     /*悔棋*/
     public void back() {
+        isGameOver = false;
         int i = steps.get(mIndex, -1);//取出最后落子位置
         if (i == -1) {
             return;

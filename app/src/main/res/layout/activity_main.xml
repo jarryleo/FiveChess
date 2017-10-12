@@ -13,7 +13,8 @@
         android:layout_centerHorizontal="true"
         android:text="单指拖动，双指缩放"
         android:textColor="@android:color/holo_red_dark"
-        android:textSize="16sp"/>
+        android:textSize="16sp"
+        android:visibility="gone"/>
 
     <TextView
         android:id="@+id/score_a"
@@ -41,7 +42,6 @@
         android:elevation="5dp"/>
 
     <LinearLayout
-        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -52,7 +52,8 @@
             android:id="@+id/btn_start"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="开始"/>
+            android:text="开始"
+            android:visibility="gone"/>
 
         <Button
             android:id="@+id/btn_pre"
