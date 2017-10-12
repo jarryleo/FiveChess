@@ -112,6 +112,7 @@ public class FiveChessAI_leo implements AI_Interface {
         /*开始根据权重分析形势*/
         //对方已经双线成杀，不拦截，全力冲四跳四
         if (oppositeMin == -STEP_SLAY) {
+            Logger.e("对面双线成杀，X=" + x2 + ",Y=" + y2);
             for (int i = 0; i < chess.length; i++) {
                 for (int j = 0; j < chess[i].length; j++) {
                     ownWeight[i][j] = weightSum(i, j, computerColor, true);
@@ -127,6 +128,7 @@ public class FiveChessAI_leo implements AI_Interface {
         }
         //对方将要5连但是可以拦截
         if (oppositeMax == STEP_DANGER) {
+            Logger.e("对面即将五连，X=" + x2 + ",Y=" + y2);
             point.x = x2;
             point.y = y2;
             point.index = -oppositeMax;
