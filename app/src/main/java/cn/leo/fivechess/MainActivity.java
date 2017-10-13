@@ -8,6 +8,7 @@ import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,8 +46,12 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     /*AI对战*/
     private int mode = CHESS_MODE_AI_VS_AI;
     private int firstSide = FIRST_GO_AI_A;
+
     private boolean auto = false;//自动
+    private boolean justOne = false;
     private int turn = firstSide;//轮换
+    private Button mBtnStart;
+    private Button mBtnNextRound;
 
 
     @Override
@@ -62,10 +67,12 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
         mBoard = (ChessBoard) findViewById(R.id.chess_bord);
         mTv_score_a = (TextView) findViewById(R.id.score_a);
         mTv_score_b = (TextView) findViewById(R.id.score_b);
-        findViewById(R.id.btn_start).setOnClickListener(this);
+        mBtnStart = (Button) findViewById(R.id.btn_start);
+        mBtnStart.setOnClickListener(this);
         findViewById(R.id.btn_next).setOnClickListener(this);
         findViewById(R.id.btn_pre).setOnClickListener(this);
-        findViewById(R.id.btn_next_round).setOnClickListener(this);
+        mBtnNextRound = (Button) findViewById(R.id.btn_next_round);
+        mBtnNextRound.setOnClickListener(this);
 
         mBoard.setOnChessDownListener(this);
         //开一个子线程执行的handler
@@ -198,15 +205,16 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
             }
             freshScore();
             if (count < 10000) { //下10000局
-                if (firstSide == FIRST_GO_AI_A) { //交换先手
-                    firstSide = FIRST_GO_AI_B;
-                } else {
-                    firstSide = FIRST_GO_AI_A;
-                }
-                turn = firstSide;//轮换
-                mBoard.refreshUI();
                 isGameOver = true;
-                //initData();
+                auto = false;
+                mBoard.refreshUI();
+                if (justOne) return;
+                mBtnStart.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        autoStart();
+                    }
+                }, 1000);
             }
         } else if (mode == CHESS_MODE_HUMAN_VS_HUMAN) {//人类 对 人类
             if (winColor == CHESS_COLOR_BLACK) {
@@ -241,6 +249,9 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
                             + mAI_A.getAIName() + ":" + score_a);
                     mTv_score_b.setText("(" + (firstSide == FIRST_GO_AI_B ? "黑" : "白") + ")"
                             + mAI_B.getAIName() + ":" + score_b);
+                    mBtnStart.setText(auto ? "暂停" : "开始");
+                    mBtnStart.setEnabled(!auto);
+                    mBtnNextRound.setEnabled(!auto);
                 } else if (mode == CHESS_MODE_HUMAN_VS_HUMAN) {//人类 对 人类
                     mTv_score_a.setText("黑方：" + score_a);
                     mTv_score_b.setText("白方：" + score_b);
@@ -254,11 +265,8 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
         int id = v.getId();
         switch (id) {
             case R.id.btn_start:
-                mBoard.startGame();
-                auto = !auto;
-                ((TextView) v).setText(auto ? "暂停" : "开始");
-                mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 0).sendToTarget();
-                turn = 5 - turn;
+                justOne = false;
+                autoStart();
                 break;
             case R.id.btn_pre:
                 isGameOver = false;
@@ -273,11 +281,33 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
                 turn = 5 - turn;
                 break;
             case R.id.btn_next_round:
-                isGameOver = false;
-                initData();
+                isGameOver = true;
+                justOne = true;
+                autoStart();
 //                mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 0).sendToTarget();
 //                turn = 5 - turn;
                 break;
+        }
+    }
+
+    //自动下一局
+    private void autoStart() {
+        if (auto) return;
+        auto = true;
+        mBtnStart.setEnabled(!auto);
+        mBtnNextRound.setEnabled(!auto);
+        if (auto) {
+            if (isGameOver) {
+                if (firstSide == FIRST_GO_AI_A) { //交换先手
+                    firstSide = FIRST_GO_AI_B;
+                } else {
+                    firstSide = FIRST_GO_AI_A;
+                }
+                turn = firstSide;//轮换
+                mBoard.startGame();
+            }
+            mHandler.obtainMessage(turn, 3 - mBoard.getLastColor(), 0).sendToTarget();
+            turn = 5 - turn;
         }
     }
 }

@@ -110,22 +110,6 @@ public class FiveChessAI_leo implements AI_Interface {
         }
         if (ownMax < 10 && oppositeMax < 10) return point;//和棋
         /*开始根据权重分析形势*/
-        //对方已经双线成杀，不拦截，全力冲四跳四
-        if (oppositeMin == -STEP_SLAY) {
-            if (!isSon) Logger.e("对面双线成杀，X=" + x2 + ",Y=" + y2);
-            for (int i = 0; i < chess.length; i++) {
-                for (int j = 0; j < chess[i].length; j++) {
-                    ownWeight[i][j] = weightSum(i, j, computerColor, true);
-                    if (ownWeight[i][j] == STEP_AT_FOUR ||
-                            ownWeight[i][j] == STEP_FOUR) {
-                        point.x = i;
-                        point.y = j;
-                        point.index = ownWeight[i][j];
-                        return point;
-                    }
-                }
-            }
-        }
         //对方将要5连但是可以拦截
         if (oppositeMax == STEP_DANGER) {
             if (!isSon) Logger.e("对面即将五连，X=" + x2 + ",Y=" + y2);
@@ -134,10 +118,31 @@ public class FiveChessAI_leo implements AI_Interface {
             point.index = -oppositeMax;
             return point;
         }
+        //己方将活四
+        if (ownMax == STEP_FOUR) {
+            point.x = x1;
+            point.y = y1;
+            point.index = ownMax;
+            return point;
+        }
+        //对方已经双线成杀，不拦截，全力冲四跳四
+        if (oppositeMin == -STEP_SLAY) {
+            if (!isSon) Logger.e("对面双线成杀，X=" + x2 + ",Y=" + y2);
+            for (int i = 0; i < chess.length; i++) {
+                for (int j = 0; j < chess[i].length; j++) {
+                    ownWeight[i][j] = weightSum(i, j, computerColor, true);
+                    if (ownWeight[i][j] == STEP_AT_FOUR) {
+                        point.x = i;
+                        point.y = j;
+                        point.index = ownWeight[i][j];
+                        return point;
+                    }
+                }
+            }
+        }
         if (isSon) {
-            //己方将要双线成杀 或 将活四
-            if (ownMax == STEP_SLAY ||
-                    ownMax == STEP_FOUR) {
+            //己方将要双线成杀
+            if (ownMax == STEP_SLAY) {
                 point.x = x1;
                 point.y = y1;
                 point.index = ownMax;
