@@ -330,9 +330,9 @@ public class ChessBoard extends View {
         mChess[x][y].color = color;
         mChess[x][y].x = x;
         mChess[x][y].y = y;
-        lock = !lock;
         steps.put(mIndex, y * mLines + x);//记录落子位置
         if (refreshUI) {
+            lock = !lock;
             refreshUI();
         }
         if (mChessDownLister != null && isFive()) {

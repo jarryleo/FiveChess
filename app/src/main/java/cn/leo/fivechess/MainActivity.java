@@ -204,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
                 }
             }
             freshScore();
-            if (count < 10000) { //下10000局
+            if (count < 100) { //下10000局
                 isGameOver = true;
                 auto = false;
                 mBoard.refreshUI();
