@@ -181,7 +181,7 @@ public class FiveChessAI_leo implements AI_Interface {
                                     break;
                                 } else if (chess1.index == STEP_KILL || chess1.index == STEP_DANGER) {
                                     //A赢了
-                                    ownWeight[i][j] -= chess1.index;
+                                    ownWeight[i][j] -= 10000;
                                     Logger.w("模拟对弈败局", "AIGo: X=" + i + ",Y=" + j);
                                     break;
                                 } else {
@@ -205,7 +205,7 @@ public class FiveChessAI_leo implements AI_Interface {
                                 }
                             }
                         }
-                    /*处理双方权重相加*/
+                        /*处理双方权重相加*/
                         if (sumMax < ownWeight[i][j] + oppositeWeight[i][j]) {  //两边总权重
                             sumMax = ownWeight[i][j] + oppositeWeight[i][j];
                             x3 = i;
