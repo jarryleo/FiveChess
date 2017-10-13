@@ -160,7 +160,7 @@ public class FiveChessAI_leo implements AI_Interface {
         //如果不是自己的副本,且下子总数已达到5个，则开始自我模拟对弈
         if (!isSon && chessCount > 5) {
             //1、找出自己权重需要模拟对弈的几个点
-            for (int h = 0; h < 3; h++) {
+            for (int h = 0; h < 4; h++) {
                 int winCount = 0;//模拟胜利次数
                 for (int i = 0; i < chess.length; i++) {
                     for (int j = 0; j < chess[i].length; j++) {
@@ -219,7 +219,7 @@ public class FiveChessAI_leo implements AI_Interface {
                         }
                     }
                 }
-                if (winCount > 0) break;
+                if (winCount > 0 && h > 0) break;
             }
         }
         //剩下走双方权重相合最大的点
