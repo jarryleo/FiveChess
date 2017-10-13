@@ -147,8 +147,10 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
         boolean down = mBoard.setChess(point.x, point.y, color, refresh == 1);
         if (down && mode == CHESS_MODE_AI_VS_AI) {
             //AI_B_go(3 - color);
-            if (auto)
+            if (auto) {
                 mHandler.obtainMessage(FIRST_GO_AI_B, 3 - color, 0).sendToTarget();
+                turn = FIRST_GO_AI_A;
+            }
         }
     }
 
@@ -158,8 +160,10 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
         boolean down = mBoard.setChess(point.x, point.y, color, refresh == 1);
         if (down && mode == CHESS_MODE_AI_VS_AI) {
             //AI_A_go(3 - color);
-            if (auto)
+            if (auto) {
                 mHandler.obtainMessage(FIRST_GO_AI_A, 3 - color, 0).sendToTarget();
+                turn = FIRST_GO_AI_B;
+            }
         }
     }
 
