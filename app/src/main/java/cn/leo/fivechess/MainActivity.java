@@ -41,11 +41,11 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     //    private AI_Interface mAI_B = new FiveChessAI_demo(); //TODO 初级引擎
     private AI_Interface mAI_B = new FiveChessAI_lsw();//TODO AI引擎2
     /*人机模式*/
-//    private int mode = CHESS_MODE_HUMAN_VS_AI; //TODO 设置下棋模式 、改成人机模式自动对战10000次，计算最终比分
-//    private int firstSide = FIRST_GO_HUMAN;//上面没有human，这里就不能写human
+    private int mode = CHESS_MODE_HUMAN_VS_AI; //TODO 设置下棋模式 、改成人机模式自动对战10000次，计算最终比分
+    private int firstSide = FIRST_GO_HUMAN;//上面没有human，这里就不能写human
     /*AI对战*/
-    private int mode = CHESS_MODE_AI_VS_AI;
-    private int firstSide = FIRST_GO_AI_A;
+//    private int mode = CHESS_MODE_AI_VS_AI;
+//    private int firstSide = FIRST_GO_AI_A;
 
     private boolean auto = false;//自动
     private boolean justOne = false;
@@ -132,8 +132,7 @@ public class MainActivity extends AppCompatActivity implements ChessBoard.onChes
     private void afterHumanGo(int x, int y) {
         mBoard.setChess(x, y, humanColor);
         if (mode == CHESS_MODE_HUMAN_VS_AI) {
-            AI_A_go(3 - humanColor, 0);
-            //AI_B_go(3 - humanColor); // TODO 选择AI引擎
+            mHandler.obtainMessage(FIRST_GO_AI_A, 3 - humanColor, 1).sendToTarget();
         } else if (mode == CHESS_MODE_HUMAN_VS_HUMAN) {
             mBoard.setLock(false);
         } else if (mode == CHESS_MODE_AI_VS_AI) {

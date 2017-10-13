@@ -13,8 +13,7 @@
         android:layout_centerHorizontal="true"
         android:text="单指拖动，双指缩放"
         android:textColor="@android:color/holo_red_dark"
-        android:textSize="16sp"
-        android:visibility="gone"/>
+        android:textSize="16sp"/>
 
     <TextView
         android:id="@+id/score_a"
@@ -46,7 +45,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="gone">
 
         <Button
             android:id="@+id/btn_start"
