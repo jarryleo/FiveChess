@@ -19,4 +19,11 @@ public class Chess implements Cloneable { // 单个棋子
     public Chess clone() {
         return new Chess(x, y, index, color);
     }
+
+    public void copy(Chess chess) {
+        this.x = chess.x;
+        this.y = chess.y;
+        this.index = chess.index;
+        this.color = chess.color;
+    }
 }

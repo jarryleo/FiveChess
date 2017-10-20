@@ -2,6 +2,7 @@ package cn.leo.fivechess.AI;
 
 
 import cn.leo.fivechess.bean.Chess;
+import cn.leo.fivechess.utils.ChessToText;
 import cn.leo.fivechess.utils.Logger;
 
 public class FiveChessAI_leo implements AI_Interface {
@@ -15,7 +16,8 @@ public class FiveChessAI_leo implements AI_Interface {
      *
      * @author 刘佳睿
      */
-    Chess chess[][]; // 接受棋盘的所有棋子
+    private Chess chess[][]; // 接受棋盘的所有棋子
+    private Chess[][] chessCopy = new Chess[15][15];//复制棋盘
     private int ownWeight[][] = new int[15][15]; // 己方每个点权重
     private int oppositeWeight[][] = new int[15][15]; // 对方每个点权重
     private int computerColor; // 电脑要走的棋子颜色 黑1 或 白2 ,0为空
@@ -157,18 +159,23 @@ public class FiveChessAI_leo implements AI_Interface {
                 return point;
             }
         }
-        //如果不是自己的副本,且下子总数已达到5个，则开始自我模拟对弈
-        if (!isSon && chessCount > 5) {
+        //如果不是自己的副本,且下子总数已达到3个，则开始自我模拟对弈
+        if (!isSon && chessCount > 3) {
+            String s = ChessToText.getChessString(chess);
+            Logger.i(s);
             //1、找出自己权重需要模拟对弈的几个点
             for (int h = 0; h < 4; h++) {
                 int winCount = 0;//模拟胜利次数
                 for (int i = 0; i < chess.length; i++) {
                     for (int j = 0; j < chess[i].length; j++) {
                         //拷贝棋局，用来模拟对弈
-                        Chess[][] chessCopy = new Chess[15][15];
                         for (int e = 0; e < chess.length; e++) {
                             for (int r = 0; r < chess[e].length; r++) {
-                                chessCopy[e][r] = chess[e][r].clone();
+                                if (chessCopy[e][r] != null) {
+                                    chessCopy[e][r].copy(chess[e][r]);
+                                } else {
+                                    chessCopy[e][r] = chess[e][r].clone();
+                                }
                             }
                         }
                         if (ownWeight[i][j] + oppositeWeight[i][j] > 10000 / (Math.pow(10, h))) {
